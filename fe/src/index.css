@@ -170,6 +170,19 @@ body {
   font-weight: 600;
 }
 
+.tldMenu__headerText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tldMenu__regionName {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap; /* let long names be long */
+}
+
 .tldMenu__toggle {
   height: 36px;
   border-radius: 10px;

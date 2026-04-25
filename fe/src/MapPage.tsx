@@ -206,6 +206,7 @@ export default function MapPage() {
   const viewerTitle = useMemo(() => titleForMapPath(mapPath), [mapPath])
 
   const inViewer = mapPath.length > 0
+  const menuRegionTitle = inViewer ? viewerTitle : 'Overworld'
 
   const regions = useMemo(() => {
     if (!maps) return []
@@ -236,7 +237,10 @@ export default function MapPage() {
   const menu = (
     <aside className={menuCollapsed ? 'tldMenu tldMenu--collapsed' : 'tldMenu'} aria-label="Navigation">
       <div className="tldMenu__header">
-        <div className="tldMenu__title">{menuCollapsed ? 'TLD' : 'TLD Map'}</div>
+        <div className="tldMenu__headerText">
+          <div className="tldMenu__title">{menuCollapsed ? 'TLD' : 'TLD Map'}</div>
+          {!menuCollapsed && <div className="tldMenu__regionName">{menuRegionTitle}</div>}
+        </div>
         <button
           type="button"
           className="tldMenu__toggle"
@@ -330,23 +334,6 @@ export default function MapPage() {
       <main className="tldLayout">
         {menu}
         <div className="tldMain">
-          <header className="tld__topbar">
-            <div className="tld__nav">
-              <div className="tld__breadcrumb" title={mapPath.join(' / ')}>
-                <span className="tld__bc-muted">TLD</span>
-                <span className="tld__bc-sep"> / </span>
-                <span>{viewerTitle}</span>
-              </div>
-            </div>
-            {mapPath.length > 1 && (
-              <div className="tld__row">
-                <Link className="tld__back" to={toRegion(mapPath[0])}>
-                  Up
-                </Link>
-              </div>
-            )}
-          </header>
-
           <section className="tld__viewer" aria-label="Map viewer">
             {selectedMapUrl ? (
               <div
@@ -385,16 +372,6 @@ export default function MapPage() {
     <main className="tldLayout">
       {menu}
       <div className="tldMain">
-        <header className="tld__topbar">
-          <div className="tld__nav">
-            <div className="tld__breadcrumb">
-              <span className="tld__bc-muted">TLD</span>
-              <span className="tld__bc-sep"> / </span>
-              <span>Overworld</span>
-            </div>
-          </div>
-        </header>
-
         <section className="tld__start" aria-label="World map">
           <img
             ref={startImgRef}
