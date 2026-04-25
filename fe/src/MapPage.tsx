@@ -63,12 +63,17 @@ function scaledCoords(coords: AreaDef['coords'], scaleX: number, scaleY: number)
   ].join(',')
 }
 
-export function MapPage() {
+export default function MapPage() {
   const [difficulty, setDifficulty] = useState<Difficulty>('pilgrim')
   const [maps, setMaps] = useState<MapsData | null>(null)
   const [menuCollapsed, setMenuCollapsed] = useState(false)
   const [imgScale, setImgScale] = useState<{ x: number; y: number } | null>(null)
   const startImgRef = useRef<HTMLImageElement | null>(null)
+  const viewerRef = useRef<HTMLDivElement | null>(null)
+  const viewerImgRef = useRef<HTMLImageElement | null>(null)
+  const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [dragging, setDragging] = useState(false)
   const navigate = useNavigate()
   const { regionId, locationId } = useParams()
   /** Empty = level 1 (overworld / homemap). [region] = level 2. [region, sub] = level 3. */
@@ -125,6 +130,78 @@ export function MapPage() {
     if (!maps) return null
     return resolveMapUrl(maps, mapPath, difficulty)
   }, [maps, mapPath, difficulty])
+
+  // Reset pan/zoom when switching maps or difficulty.
+  useEffect(() => {
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
+    setDragging(false)
+  }, [selectedMapUrl])
+
+  const applyWheelZoom = (deltaY: number) => {
+    setZoom((z) => {
+      const next = z + (deltaY < 0 ? 0.12 : -0.12)
+      return Math.min(Math.max(next, 0.5), 6)
+    })
+  }
+
+  // Pointer-based drag/pinch.
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
+  const pinchRef = useRef<{ dist: number; zoom: number } | null>(null)
+  const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null)
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+    if (pointersRef.current.size === 1) {
+      dragStartRef.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y }
+      setDragging(true)
+    } else if (pointersRef.current.size === 2) {
+      const pts = Array.from(pointersRef.current.values())
+      const dx = pts[0].x - pts[1].x
+      const dy = pts[0].y - pts[1].y
+      pinchRef.current = { dist: Math.hypot(dx, dy), zoom }
+      dragStartRef.current = null
+      setDragging(false)
+    }
+  }
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!pointersRef.current.has(e.pointerId)) return
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+    if (pointersRef.current.size === 1) {
+      const start = dragStartRef.current
+      if (!start) return
+      const dx = e.clientX - start.x
+      const dy = e.clientY - start.y
+      setPan({ x: start.panX + dx, y: start.panY + dy })
+      return
+    }
+
+    if (pointersRef.current.size === 2) {
+      const pinch = pinchRef.current
+      if (!pinch) return
+      const pts = Array.from(pointersRef.current.values())
+      const dx = pts[0].x - pts[1].x
+      const dy = pts[0].y - pts[1].y
+      const dist = Math.hypot(dx, dy)
+      const ratio = dist / pinch.dist
+      const next = Math.min(Math.max(pinch.zoom * ratio, 0.5), 6)
+      setZoom(next)
+    }
+  }
+
+  const onPointerUpOrCancel = (e: React.PointerEvent) => {
+    pointersRef.current.delete(e.pointerId)
+    if (pointersRef.current.size < 2) pinchRef.current = null
+    if (pointersRef.current.size === 0) {
+      dragStartRef.current = null
+      setDragging(false)
+    }
+  }
 
   const viewerTitle = useMemo(() => titleForMapPath(mapPath), [mapPath])
 
@@ -272,7 +349,29 @@ export function MapPage() {
 
           <section className="tld__viewer" aria-label="Map viewer">
             {selectedMapUrl ? (
-              <img src={selectedMapUrl} alt={viewerTitle} draggable={false} />
+              <div
+                ref={viewerRef}
+                className={dragging ? 'tldViewer tldViewer--dragging' : 'tldViewer'}
+                onWheel={(e) => {
+                  e.preventDefault()
+                  applyWheelZoom(e.deltaY)
+                }}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUpOrCancel}
+                onPointerCancel={onPointerUpOrCancel}
+              >
+                <img
+                  ref={viewerImgRef}
+                  src={selectedMapUrl}
+                  alt={viewerTitle}
+                  draggable={false}
+                  style={{
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                    transformOrigin: 'center center',
+                  }}
+                />
+              </div>
             ) : (
               <p className="tld__missing">No image URL in maps.json for this path and difficulty.</p>
             )}

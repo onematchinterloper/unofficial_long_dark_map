@@ -255,9 +255,25 @@ body {
   overflow: hidden;
 }
 
-.tld__viewer img {
+.tldViewer {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.tldViewer--dragging {
+  cursor: grabbing;
+}
+
+.tldViewer img {
   max-width: 100%;
   max-height: 100dvh;
   width: auto;
   height: auto;
+  will-change: transform;
+  pointer-events: none;
 }
