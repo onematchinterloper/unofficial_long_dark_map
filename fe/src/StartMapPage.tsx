@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Difficulty, MapsData } from './mapsTypes'
 import { resolveMapUrl } from './mapsTypes'
+import { Link, NavLink, useNavigate, useParams } from 'react-router-dom'
 
 type AreaDef = {
   id: string
@@ -65,11 +66,21 @@ function scaledCoords(coords: AreaDef['coords'], scaleX: number, scaleY: number)
 export function StartMapPage() {
   const [difficulty, setDifficulty] = useState<Difficulty>('pilgrim')
   const [maps, setMaps] = useState<MapsData | null>(null)
-  /** Empty = level 1 (overworld / homemap). [region] = level 2. [region, sub] = level 3. */
-  const [mapPath, setMapPath] = useState<string[]>([])
   const [menuCollapsed, setMenuCollapsed] = useState(false)
   const [imgScale, setImgScale] = useState<{ x: number; y: number } | null>(null)
   const startImgRef = useRef<HTMLImageElement | null>(null)
+  const navigate = useNavigate()
+  const { regionId, locationId } = useParams()
+  /** Empty = level 1 (overworld / homemap). [region] = level 2. [region, sub] = level 3. */
+  const mapPath = useMemo(() => {
+    if (!regionId) return []
+    if (!locationId) return [regionId]
+    return [regionId, locationId]
+  }, [regionId, locationId])
+
+  const toHome = () => '/'
+  const toRegion = (id: string) => `/region/${encodeURIComponent(id)}`
+  const toLocation = (rid: string, lid: string) => `/region/${encodeURIComponent(rid)}/${encodeURIComponent(lid)}`
 
   const base = import.meta.env.BASE_URL
   const startMapSrc = `${base}assets/img/homemap.png`
@@ -134,7 +145,15 @@ export function StartMapPage() {
   }, [maps, mapPath])
 
   const goTo = (nextPath: string[]) => {
-    setMapPath(nextPath)
+    if (nextPath.length === 0) {
+      navigate('/')
+      return
+    }
+    if (nextPath.length === 1) {
+      navigate(toRegion(nextPath[0]))
+      return
+    }
+    navigate(toLocation(nextPath[0], nextPath[1] ?? ''))
   }
 
   const menu = (
@@ -154,9 +173,9 @@ export function StartMapPage() {
 
       {menuCollapsed && (
         <div className="tldMenu__collapsedRow">
-          <button type="button" className="tldMenu__homeCompact" onClick={() => goTo([])} title="Home (overworld)">
+          <Link className="tldMenu__homeCompact" to={toHome()} title="Home (overworld)">
             Home
-          </button>
+          </Link>
         </div>
       )}
 
@@ -164,13 +183,16 @@ export function StartMapPage() {
         <>
           <div className="tldMenu__section">
             <div className="tldMenu__label">Navigation</div>
-            <button type="button" className="tldMenu__item" onClick={() => goTo([])}>
+            <NavLink className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')} to={toHome()}>
               Home
-            </button>
+            </NavLink>
             {mapPath.length > 1 && (
-              <button type="button" className="tldMenu__item" onClick={() => goTo(mapPath.slice(0, -1))}>
+              <NavLink
+                className="tldMenu__item"
+                to={mapPath.length === 2 ? toRegion(mapPath[0]) : toHome()}
+              >
                 Up one level
-              </button>
+              </NavLink>
             )}
           </div>
 
@@ -197,9 +219,13 @@ export function StartMapPage() {
           <div className="tldMenu__section">
             <div className="tldMenu__label">Regions</div>
             {regions.map((r) => (
-              <button key={r} type="button" className="tldMenu__item" onClick={() => goTo([r])}>
+              <NavLink
+                key={r}
+                className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')}
+                to={toRegion(r)}
+              >
                 {titleForMapPath([r])}
-              </button>
+              </NavLink>
             ))}
           </div>
 
@@ -207,14 +233,13 @@ export function StartMapPage() {
             <div className="tldMenu__section">
               <div className="tldMenu__label">Inside {titleForMapPath([mapPath[0]])}</div>
               {currentRegionLocations.map((loc) => (
-                <button
+                <NavLink
                   key={loc}
-                  type="button"
-                  className="tldMenu__item"
-                  onClick={() => goTo([mapPath[0], loc])}
+                  className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')}
+                  to={toLocation(mapPath[0], loc)}
                 >
                   {titleForMapPath([mapPath[0], loc])}
-                </button>
+                </NavLink>
               ))}
             </div>
           )}
@@ -238,9 +263,9 @@ export function StartMapPage() {
             </div>
             {mapPath.length > 1 && (
               <div className="tld__row">
-                <button type="button" className="tld__back" onClick={() => setMapPath((p) => p.slice(0, -1))}>
+                <Link className="tld__back" to={toRegion(mapPath[0])}>
                   Up
-                </button>
+                </Link>
               </div>
             )}
           </header>
@@ -301,7 +326,7 @@ export function StartMapPage() {
                 coords={imgScale ? scaledCoords(a.coords, imgScale.x, imgScale.y) : a.coords.join(',')}
                 onClick={(e) => {
                   e.preventDefault()
-                  setMapPath([...a.path])
+                  goTo([...a.path])
                 }}
               />
             ))}

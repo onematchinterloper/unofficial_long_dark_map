@@ -155,6 +155,10 @@ body {
   background: rgba(255, 255, 255, 0.06);
   color: inherit;
   font-size: 0.75rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
@@ -212,10 +216,24 @@ body {
   border-radius: 10px;
   cursor: pointer;
   margin: 0 0 8px;
+  text-decoration: none;
+  display: block;
 }
 
 .tldMenu__item:hover {
   background: rgba(255, 255, 255, 0.08);
+}
+
+.tldMenu__item.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.tld__back {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 
