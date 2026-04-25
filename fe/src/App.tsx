@@ -1,3 +1,5 @@
 export function App() {
-  return <main className="app">Hello, world!</main>
+  return <StartMapPage />
 }
+
+import { StartMapPage } from './StartMapPage'
