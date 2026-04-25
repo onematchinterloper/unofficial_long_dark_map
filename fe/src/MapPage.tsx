@@ -63,7 +63,7 @@ function scaledCoords(coords: AreaDef['coords'], scaleX: number, scaleY: number)
   ].join(',')
 }
 
-export function StartMapPage() {
+export function MapPage() {
   const [difficulty, setDifficulty] = useState<Difficulty>('pilgrim')
   const [maps, setMaps] = useState<MapsData | null>(null)
   const [menuCollapsed, setMenuCollapsed] = useState(false)
