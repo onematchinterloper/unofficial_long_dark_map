@@ -67,6 +67,7 @@ export function StartMapPage() {
   const [maps, setMaps] = useState<MapsData | null>(null)
   /** Empty = level 1 (overworld / homemap). [region] = level 2. [region, sub] = level 3. */
   const [mapPath, setMapPath] = useState<string[]>([])
+  const [menuCollapsed, setMenuCollapsed] = useState(false)
   const [imgScale, setImgScale] = useState<{ x: number; y: number } | null>(null)
   const startImgRef = useRef<HTMLImageElement | null>(null)
 
@@ -118,113 +119,195 @@ export function StartMapPage() {
 
   const inViewer = mapPath.length > 0
 
-  if (inViewer) {
-    return (
-      <main className="tld">
-        <header className="tld__topbar">
-          <div className="tld__nav">
-            <div className="tld__breadcrumb" title={mapPath.join(' / ')}>
-              <span className="tld__bc-muted">TLD</span>
-              <span className="tld__bc-sep"> / </span>
-              <span>{viewerTitle}</span>
-            </div>
-            <div className="tld__row">
-              {mapPath.length > 1 && (
-                <button type="button" className="tld__back" onClick={() => setMapPath((p) => p.slice(0, -1))}>
-                  Up
-                </button>
-              )}
-              <button type="button" className="tld__home" onClick={() => setMapPath([])}>
-                Home
+  const regions = useMemo(() => {
+    if (!maps) return []
+    return Object.keys(maps.regions).sort((a, b) => a.localeCompare(b))
+  }, [maps])
+
+  const currentRegionLocations = useMemo(() => {
+    if (!maps) return []
+    const regionId = mapPath[0]
+    if (!regionId) return []
+    const locs = maps.regions[regionId]?.locations
+    if (!locs) return []
+    return Object.keys(locs).sort((a, b) => a.localeCompare(b))
+  }, [maps, mapPath])
+
+  const goTo = (nextPath: string[]) => {
+    setMapPath(nextPath)
+  }
+
+  const menu = (
+    <aside className={menuCollapsed ? 'tldMenu tldMenu--collapsed' : 'tldMenu'} aria-label="Navigation">
+      <div className="tldMenu__header">
+        <div className="tldMenu__title">{menuCollapsed ? 'TLD' : 'TLD Map'}</div>
+        <button
+          type="button"
+          className="tldMenu__toggle"
+          onClick={() => setMenuCollapsed((v) => !v)}
+          aria-pressed={menuCollapsed}
+          title={menuCollapsed ? 'Expand menu' : 'Collapse menu'}
+        >
+          {menuCollapsed ? '»' : '«'}
+        </button>
+      </div>
+
+      {menuCollapsed && (
+        <div className="tldMenu__collapsedRow">
+          <button type="button" className="tldMenu__homeCompact" onClick={() => goTo([])} title="Home (overworld)">
+            Home
+          </button>
+        </div>
+      )}
+
+      {!menuCollapsed && (
+        <>
+          <div className="tldMenu__section">
+            <div className="tldMenu__label">Navigation</div>
+            <button type="button" className="tldMenu__item" onClick={() => goTo([])}>
+              Home
+            </button>
+            {mapPath.length > 1 && (
+              <button type="button" className="tldMenu__item" onClick={() => goTo(mapPath.slice(0, -1))}>
+                Up one level
+              </button>
+            )}
+          </div>
+
+          <div className="tldMenu__section">
+            <div className="tldMenu__label">Difficulty</div>
+            <div className="tldMenu__row">
+              <button
+                type="button"
+                className={difficulty === 'pilgrim' ? 'tldMenu__pill active' : 'tldMenu__pill'}
+                onClick={() => setDifficulty('pilgrim')}
+              >
+                Pilgrim
+              </button>
+              <button
+                type="button"
+                className={difficulty === 'interloper' ? 'tldMenu__pill active' : 'tldMenu__pill'}
+                onClick={() => setDifficulty('interloper')}
+              >
+                Interloper
               </button>
             </div>
           </div>
-          <div className="tld__difficulty">
-            <button
-              type="button"
-              className={difficulty === 'pilgrim' ? 'active' : undefined}
-              onClick={() => setDifficulty('pilgrim')}
-            >
-              Pilgrim / Voyageur / Stalker
-            </button>
-            <button
-              type="button"
-              className={difficulty === 'interloper' ? 'active' : undefined}
-              onClick={() => setDifficulty('interloper')}
-            >
-              Interloper / Misery
-            </button>
-          </div>
-        </header>
 
-        <section className="tld__viewer" aria-label="Map viewer">
-          {selectedMapUrl ? (
-            <img src={selectedMapUrl} alt={viewerTitle} draggable={false} />
-          ) : (
-            <p className="tld__missing">No image URL in maps.json for this path and difficulty.</p>
+          <div className="tldMenu__section">
+            <div className="tldMenu__label">Regions</div>
+            {regions.map((r) => (
+              <button key={r} type="button" className="tldMenu__item" onClick={() => goTo([r])}>
+                {titleForMapPath([r])}
+              </button>
+            ))}
+          </div>
+
+          {mapPath.length >= 1 && currentRegionLocations.length > 0 && (
+            <div className="tldMenu__section">
+              <div className="tldMenu__label">Inside {titleForMapPath([mapPath[0]])}</div>
+              {currentRegionLocations.map((loc) => (
+                <button
+                  key={loc}
+                  type="button"
+                  className="tldMenu__item"
+                  onClick={() => goTo([mapPath[0], loc])}
+                >
+                  {titleForMapPath([mapPath[0], loc])}
+                </button>
+              ))}
+            </div>
           )}
-        </section>
+        </>
+      )}
+    </aside>
+  )
+
+  if (inViewer) {
+    return (
+      <main className="tldLayout">
+        {menu}
+        <div className="tldMain">
+          <header className="tld__topbar">
+            <div className="tld__nav">
+              <div className="tld__breadcrumb" title={mapPath.join(' / ')}>
+                <span className="tld__bc-muted">TLD</span>
+                <span className="tld__bc-sep"> / </span>
+                <span>{viewerTitle}</span>
+              </div>
+            </div>
+            {mapPath.length > 1 && (
+              <div className="tld__row">
+                <button type="button" className="tld__back" onClick={() => setMapPath((p) => p.slice(0, -1))}>
+                  Up
+                </button>
+              </div>
+            )}
+          </header>
+
+          <section className="tld__viewer" aria-label="Map viewer">
+            {selectedMapUrl ? (
+              <img src={selectedMapUrl} alt={viewerTitle} draggable={false} />
+            ) : (
+              <p className="tld__missing">No image URL in maps.json for this path and difficulty.</p>
+            )}
+          </section>
+        </div>
       </main>
     )
   }
 
   return (
-    <main className="tld">
-      <header className="tld__topbar">
-        <div className="tld__difficulty">
-          <button
-            type="button"
-            className={difficulty === 'pilgrim' ? 'active' : undefined}
-            onClick={() => setDifficulty('pilgrim')}
-          >
-            Pilgrim / Voyageur / Stalker
-          </button>
-          <button
-            type="button"
-            className={difficulty === 'interloper' ? 'active' : undefined}
-            onClick={() => setDifficulty('interloper')}
-          >
-            Interloper / Misery
-          </button>
-        </div>
-      </header>
+    <main className="tldLayout">
+      {menu}
+      <div className="tldMain">
+        <header className="tld__topbar">
+          <div className="tld__nav">
+            <div className="tld__breadcrumb">
+              <span className="tld__bc-muted">TLD</span>
+              <span className="tld__bc-sep"> / </span>
+              <span>Overworld</span>
+            </div>
+          </div>
+        </header>
 
-      <section className="tld__start" aria-label="World map">
-        <img
-          ref={startImgRef}
-          src={startMapSrc}
-          alt="Start Map"
-          useMap="#map-links"
-          id="start-map-image"
-          draggable={false}
-          onLoad={() => {
-            const img = startImgRef.current
-            if (!img?.naturalWidth || !img?.naturalHeight) return
-            if (!img.clientWidth || !img.clientHeight) return
-            setImgScale({
-              x: img.clientWidth / img.naturalWidth,
-              y: img.clientHeight / img.naturalHeight,
-            })
-          }}
-        />
+        <section className="tld__start" aria-label="World map">
+          <img
+            ref={startImgRef}
+            src={startMapSrc}
+            alt="Start Map"
+            useMap="#map-links"
+            id="start-map-image"
+            draggable={false}
+            onLoad={() => {
+              const img = startImgRef.current
+              if (!img?.naturalWidth || !img?.naturalHeight) return
+              if (!img.clientWidth || !img.clientHeight) return
+              setImgScale({
+                x: img.clientWidth / img.naturalWidth,
+                y: img.clientHeight / img.naturalHeight,
+              })
+            }}
+          />
 
-        <map name="map-links">
-          {AREAS.map((a) => (
-            <area
-              key={a.id}
-              alt={a.title}
-              title={a.title}
-              href="#"
-              shape="rect"
-              coords={imgScale ? scaledCoords(a.coords, imgScale.x, imgScale.y) : a.coords.join(',')}
-              onClick={(e) => {
-                e.preventDefault()
-                setMapPath([...a.path])
-              }}
-            />
-          ))}
-        </map>
-      </section>
+          <map name="map-links">
+            {AREAS.map((a) => (
+              <area
+                key={a.id}
+                alt={a.title}
+                title={a.title}
+                href="#"
+                shape="rect"
+                coords={imgScale ? scaledCoords(a.coords, imgScale.x, imgScale.y) : a.coords.join(',')}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setMapPath([...a.path])
+                }}
+              />
+            ))}
+          </map>
+        </section>
+      </div>
     </main>
   )
 }
