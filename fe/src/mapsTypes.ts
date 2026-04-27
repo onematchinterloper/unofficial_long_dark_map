@@ -1,7 +1,20 @@
-export type Difficulty = 'pilgrim' | 'interloper'
+export type MapTypeId = 'pilgrim' | 'interloper'
 
+export type MapTypeDef = {
+  id: MapTypeId
+  /** Shown in the “Map type” control */
+  title: string
+}
+
+/** Pilgrim and Interloper only — keys in each `map` in maps.json. */
+export const MAP_TYPE_OPTIONS: readonly MapTypeDef[] = [
+  { id: 'pilgrim', title: 'Pilgrim' },
+  { id: 'interloper', title: 'Interloper' },
+] as const
+
+/** Per-map image URLs, keyed by map type (pilgrim / interloper) */
 export type MapImages = {
-  [K in Difficulty]?: string
+  [key: string]: string | undefined
 }
 
 export type SubLocation = {
@@ -28,6 +41,11 @@ export type MapsData = {
   transitions: Record<string, RegionNode>
 }
 
+export function pickValidMapType(current: string): MapTypeId {
+  if (current === 'interloper' || current === 'pilgrim') return current
+  return 'pilgrim'
+}
+
 /** Resolves a level-2 or level-3 map node: regions first, then transitions (ids do not overlap). */
 export function getRegionNode(data: MapsData, id: string): RegionNode | undefined {
   return data.regions[id] ?? data.transitions[id]
@@ -36,16 +54,16 @@ export function getRegionNode(data: MapsData, id: string): RegionNode | undefine
 export function resolveMapUrl(
   data: MapsData,
   path: string[],
-  difficulty: Difficulty,
+  mapType: string,
 ): string | null {
   if (path.length === 0) {
-    return data.overworld.map[difficulty] ?? null
+    return data.overworld.map[mapType] ?? null
   }
   if (path.length === 1) {
-    return getRegionNode(data, path[0])?.map[difficulty] ?? null
+    return getRegionNode(data, path[0])?.map[mapType] ?? null
   }
   if (path.length === 2) {
-    return getRegionNode(data, path[0])?.locations?.[path[1]]?.map[difficulty] ?? null
+    return getRegionNode(data, path[0])?.locations?.[path[1]]?.map[mapType] ?? null
   }
   return null
 }

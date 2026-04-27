@@ -7,13 +7,13 @@ import {
   type PointerEvent,
   type RefObject,
 } from 'react'
-import type { Difficulty, MapsData } from './mapsTypes'
-import { getRegionNode, resolveMapUrl } from './mapsTypes'
+import type { MapsData } from './mapsTypes'
+import { getRegionNode, MAP_TYPE_OPTIONS, pickValidMapType, resolveMapUrl } from './mapsTypes'
 import {
-  readDifficultyFromCookie,
+  readMapTypeFromCookie,
   readMenuCollapsedFromCookie,
   readOpenMenuGroupsFromCookie,
-  writeDifficultyToCookie,
+  writeMapTypeToCookie,
   writeMenuCollapsedToCookie,
   writeOpenMenuGroupsToCookie,
 } from './cookies'
@@ -137,10 +137,10 @@ function naturalRectFromTwoClientPoints(
 function logLinkToolOutput(opts: {
   mapPath: string[]
   mapTitle: string
-  difficulty: Difficulty
+  mapType: string
   coords: [number, number, number, number]
 }) {
-  const { mapPath, mapTitle, difficulty, coords } = opts
+  const { mapPath, mapTitle, mapType, coords } = opts
   const [x1, y1, x2, y2] = coords
   const pathJson = JSON.stringify(mapPath)
   const route =
@@ -151,7 +151,7 @@ function logLinkToolOutput(opts: {
         : `/region/${encodeURIComponent(mapPath[0])}/${encodeURIComponent(mapPath[1] ?? '')}`
   const block = `
 --- TLD dev (copy/paste) ---
-map:       ${mapTitle}   (${pathJson} · ${difficulty})
+map:       ${mapTitle}   (${pathJson} · ${mapType})
 route:     ${route}
 natural:   [${x1}, ${y1}, ${x2}, ${y2}]
 
@@ -160,7 +160,7 @@ coords:    [${x1}, ${y1}, ${x2}, ${y2}]
 ---`
   // eslint-disable-next-line no-console
   console.log(block)
-  const oneline = JSON.stringify({ mapPath, mapTitle, difficulty, coords: [x1, y1, x2, y2] })
+  const oneline = JSON.stringify({ mapPath, mapTitle, mapType, coords: [x1, y1, x2, y2] })
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     void navigator.clipboard
       .writeText(oneline)
@@ -178,10 +178,10 @@ type LinkRectToolProps = {
   imageRef: RefObject<HTMLImageElement | null>
   mapPath: string[]
   mapTitle: string
-  difficulty: Difficulty
+  mapType: string
 }
 
-function LinkRectTool({ imageRef, mapPath, mapTitle, difficulty }: LinkRectToolProps) {
+function LinkRectTool({ imageRef, mapPath, mapTitle, mapType }: LinkRectToolProps) {
   const [rect, setRect] = useState<null | { x: number; y: number; w: number; h: number }>(null)
   const dragRef = useRef<null | { start: { x: number; y: number } }>(null)
 
@@ -244,7 +244,7 @@ function LinkRectTool({ imageRef, mapPath, mapTitle, difficulty }: LinkRectToolP
         if (Math.abs(bX - aX) < 3 && Math.abs(bY - aY) < 3) return
         const coords = naturalRectFromTwoClientPoints(aX, aY, bX, bY, img)
         if (coords[0] === coords[2] || coords[1] === coords[3]) return
-        logLinkToolOutput({ mapPath, mapTitle, difficulty, coords })
+        logLinkToolOutput({ mapPath, mapTitle, mapType, coords })
       }}
       onPointerCancel={(e) => {
         dragRef.current = null
@@ -267,7 +267,7 @@ function LinkRectTool({ imageRef, mapPath, mapTitle, difficulty }: LinkRectToolP
 }
 
 export default function MapPage() {
-  const [difficulty, setDifficulty] = useState<Difficulty>(() => readDifficultyFromCookie())
+  const [mapType, setMapType] = useState(() => pickValidMapType(readMapTypeFromCookie()))
   const [maps, setMaps] = useState<MapsData | null>(null)
   const [menuCollapsed, setMenuCollapsed] = useState(() => readMenuCollapsedFromCookie())
   const [imgScale, setImgScale] = useState<{ x: number; y: number } | null>(null)
@@ -334,10 +334,10 @@ export default function MapPage() {
 
   const selectedMapUrl = useMemo(() => {
     if (!maps) return null
-    return resolveMapUrl(maps, mapPath, difficulty)
-  }, [maps, mapPath, difficulty])
+    return resolveMapUrl(maps, mapPath, mapType)
+  }, [maps, mapPath, mapType])
 
-  // Reset pan/zoom when switching maps or difficulty.
+  // Reset pan/zoom when switching maps or map type.
   useEffect(() => {
     wheelFocusRef.current = null
     setZoom(1)
@@ -477,8 +477,8 @@ export default function MapPage() {
   const [openMenuGroups, setOpenMenuGroups] = useState<Set<string>>(() => readOpenMenuGroupsFromCookie())
 
   useEffect(() => {
-    writeDifficultyToCookie(difficulty)
-  }, [difficulty])
+    writeMapTypeToCookie(mapType)
+  }, [mapType])
 
   useEffect(() => {
     writeMenuCollapsedToCookie(menuCollapsed)
@@ -662,22 +662,18 @@ export default function MapPage() {
       </div>
 
       <div className="tldMenu__section">
-        <div className="tldMenu__label">Difficulty</div>
+        <div className="tldMenu__label">Map type</div>
         <div className="tldMenu__row">
-          <button
-            type="button"
-            className={difficulty === 'pilgrim' ? 'tldMenu__pill active' : 'tldMenu__pill'}
-            onClick={() => setDifficulty('pilgrim')}
-          >
-            Pilgrim
-          </button>
-          <button
-            type="button"
-            className={difficulty === 'interloper' ? 'tldMenu__pill active' : 'tldMenu__pill'}
-            onClick={() => setDifficulty('interloper')}
-          >
-            Interloper
-          </button>
+          {MAP_TYPE_OPTIONS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={mapType === t.id ? 'tldMenu__pill active' : 'tldMenu__pill'}
+              onClick={() => setMapType(t.id)}
+            >
+              {t.title}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -778,12 +774,12 @@ export default function MapPage() {
                     imageRef={viewerImgRef}
                     mapPath={mapPath}
                     mapTitle={viewerTitle}
-                    difficulty={difficulty}
+                    mapType={mapType}
                   />
                 )}
               </div>
             ) : (
-              <p className="tld__missing">No image URL in maps.json for this path and difficulty.</p>
+              <p className="tld__missing">No image URL in maps.json for this path and map type.</p>
             )}
           </section>
         </div>
@@ -838,7 +834,7 @@ export default function MapPage() {
               imageRef={startImgRef}
               mapPath={[]}
               mapTitle={titleForMapPath(maps, [])}
-              difficulty={difficulty}
+              mapType={mapType}
             />
           )}
         </section>

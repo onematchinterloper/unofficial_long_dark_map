@@ -1,7 +1,5 @@
-import type { Difficulty } from './mapsTypes'
-
 const MAX_AGE_SEC = 60 * 60 * 24 * 365
-const DIFFICULTY = 'tldmap_difficulty'
+const MAP_TYPE = 'tldmap_map_type'
 const MENU_COLLAPSED = 'tldmap_menu_collapsed'
 const OPEN_GROUPS = 'tldmap_open_menu_groups'
 
@@ -17,14 +15,12 @@ function set(name: string, value: string) {
   document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${MAX_AGE_SEC}; SameSite=Lax`
 }
 
-export function readDifficultyFromCookie(): Difficulty {
-  const v = get(DIFFICULTY)
-  if (v === 'interloper' || v === 'pilgrim') return v
-  return 'pilgrim'
+export function readMapTypeFromCookie(): string {
+  return get(MAP_TYPE) ?? 'pilgrim'
 }
 
-export function writeDifficultyToCookie(d: Difficulty) {
-  set(DIFFICULTY, d)
+export function writeMapTypeToCookie(id: string) {
+  set(MAP_TYPE, id)
 }
 
 export function readMenuCollapsedFromCookie(): boolean {
