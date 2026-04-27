@@ -4,6 +4,12 @@
   box-sizing: border-box;
 }
 
+/* Already-dark UI: helps UA form controls; pairs with <meta name="darkreader-lock" /> for Dark Reader */
+html {
+  color-scheme: dark;
+  background: #1a1a1a;
+}
+
 html,
 body {
   height: 100%;
@@ -130,9 +136,65 @@ body {
   overflow: auto; /* menu scrolls internally */
 }
 
+/* Narrow column (200px) for more map room; same controls as full width, nowrap + scroll as needed */
 .tldMenu--collapsed {
-  width: 64px;
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
   padding: 12px 8px;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.tldMenu--collapsed .tldMenu__regionName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tldMenu--collapsed .tldMenu__row {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.tldMenu--collapsed .tldMenu__sectionHeader {
+  flex-wrap: nowrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tldMenu--collapsed .tldMenu__sectionHeader .tldMenu__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tldMenu--collapsed .tldMenu__item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tldMenu--collapsed .tldMenu__pill {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tldMenu--collapsed .tldMenu__groupHeader {
+  flex-wrap: nowrap;
+}
+
+.tldMenu--collapsed .tldMenu__groupHeader .tldMenu__item--grow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tldMenu--collapsed .tldMenu__item--sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tldMenu__header {
@@ -143,27 +205,6 @@ body {
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.10);
   margin-bottom: 10px;
-}
-
-.tldMenu__collapsedRow {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 10px;
-}
-
-.tldMenu__homeCompact {
-  width: 100%;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.06);
-  color: inherit;
-  font-size: 0.75rem;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
 }
 
 .tldMenu__title {

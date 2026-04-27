@@ -17,7 +17,7 @@ import {
   writeMenuCollapsedToCookie,
   writeOpenMenuGroupsToCookie,
 } from './cookies'
-import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 type AreaDef = {
   id: string
@@ -641,7 +641,7 @@ export default function MapPage() {
       <div className="tldMenu__header">
         <div className="tldMenu__headerText">
           <div className="tldMenu__title">{menuCollapsed ? 'TLD' : 'TLD Map'}</div>
-          {!menuCollapsed && <div className="tldMenu__regionName">{menuRegionTitle}</div>}
+          <div className="tldMenu__regionName">{menuRegionTitle}</div>
         </div>
         <button
           type="button"
@@ -654,104 +654,92 @@ export default function MapPage() {
         </button>
       </div>
 
-      {menuCollapsed && (
-        <div className="tldMenu__collapsedRow">
-          <Link className="tldMenu__homeCompact" to={toHome()} title="Home (overworld)">
-            Home
-          </Link>
+      <div className="tldMenu__section">
+        <div className="tldMenu__label">Navigation</div>
+        <NavLink className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')} to={toHome()}>
+          Home
+        </NavLink>
+      </div>
+
+      <div className="tldMenu__section">
+        <div className="tldMenu__label">Difficulty</div>
+        <div className="tldMenu__row">
+          <button
+            type="button"
+            className={difficulty === 'pilgrim' ? 'tldMenu__pill active' : 'tldMenu__pill'}
+            onClick={() => setDifficulty('pilgrim')}
+          >
+            Pilgrim
+          </button>
+          <button
+            type="button"
+            className={difficulty === 'interloper' ? 'tldMenu__pill active' : 'tldMenu__pill'}
+            onClick={() => setDifficulty('interloper')}
+          >
+            Interloper
+          </button>
         </div>
-      )}
+      </div>
 
-      {!menuCollapsed && (
-        <>
-          <div className="tldMenu__section">
-            <div className="tldMenu__label">Navigation</div>
-            <NavLink className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')} to={toHome()}>
-              Home
-            </NavLink>
-          </div>
+      <div className="tldMenu__section">
+        <div className="tldMenu__sectionHeader">
+          <span className="tldMenu__label" id="tld-menu-label-regions">
+            Regions
+          </span>
+          {regionIdsWithLocs.length > 0 && (
+            <button
+              type="button"
+              className="tldMenu__sectionToggle"
+              onClick={toggleAllRegionSubmaps}
+              title={
+                allRegionSubmapsOpen
+                  ? 'Collapse all sub-maps (every region with locations)'
+                  : 'Expand all sub-maps (every region with locations)'
+              }
+              aria-label={
+                allRegionSubmapsOpen
+                  ? 'Collapse all sub-maps for regions with locations'
+                  : 'Expand all sub-maps for regions with locations'
+              }
+            >
+              {allRegionSubmapsOpen ? '▼' : '▶'}
+            </button>
+          )}
+        </div>
+        <div id="tld-menu-regions" role="region" aria-labelledby="tld-menu-label-regions">
+          {maps && regions.map((r) => renderMapNavGroup(r))}
+        </div>
+      </div>
 
-          <div className="tldMenu__section">
-            <div className="tldMenu__label">Difficulty</div>
-            <div className="tldMenu__row">
-              <button
-                type="button"
-                className={difficulty === 'pilgrim' ? 'tldMenu__pill active' : 'tldMenu__pill'}
-                onClick={() => setDifficulty('pilgrim')}
-              >
-                Pilgrim
-              </button>
-              <button
-                type="button"
-                className={difficulty === 'interloper' ? 'tldMenu__pill active' : 'tldMenu__pill'}
-                onClick={() => setDifficulty('interloper')}
-              >
-                Interloper
-              </button>
-            </div>
-          </div>
-
-          <div className="tldMenu__section">
-            <div className="tldMenu__sectionHeader">
-              <span className="tldMenu__label" id="tld-menu-label-regions">
-                Regions
-              </span>
-              {regionIdsWithLocs.length > 0 && (
-                <button
-                  type="button"
-                  className="tldMenu__sectionToggle"
-                  onClick={toggleAllRegionSubmaps}
-                  title={
-                    allRegionSubmapsOpen
-                      ? 'Collapse all sub-maps (every region with locations)'
-                      : 'Expand all sub-maps (every region with locations)'
-                  }
-                  aria-label={
-                    allRegionSubmapsOpen
-                      ? 'Collapse all sub-maps for regions with locations'
-                      : 'Expand all sub-maps for regions with locations'
-                  }
-                >
-                  {allRegionSubmapsOpen ? '▼' : '▶'}
-                </button>
-              )}
-            </div>
-            <div id="tld-menu-regions" role="region" aria-labelledby="tld-menu-label-regions">
-              {maps && regions.map((r) => renderMapNavGroup(r))}
-            </div>
-          </div>
-
-          <div className="tldMenu__section">
-            <div className="tldMenu__sectionHeader">
-              <span className="tldMenu__label" id="tld-menu-label-transitions">
-                Transitions
-              </span>
-              {transitionIdsWithLocs.length > 0 && (
-                <button
-                  type="button"
-                  className="tldMenu__sectionToggle"
-                  onClick={toggleAllTransitionSubmaps}
-                  title={
-                    allTransitionSubmapsOpen
-                      ? 'Collapse all sub-maps (every transition with locations)'
-                      : 'Expand all sub-maps (every transition with locations)'
-                  }
-                  aria-label={
-                    allTransitionSubmapsOpen
-                      ? 'Collapse all sub-maps for transitions with locations'
-                      : 'Expand all sub-maps for transitions with locations'
-                  }
-                >
-                  {allTransitionSubmapsOpen ? '▼' : '▶'}
-                </button>
-              )}
-            </div>
-            <div id="tld-menu-transitions" role="region" aria-labelledby="tld-menu-label-transitions">
-              {maps && transitions.map((t) => renderMapNavGroup(t))}
-            </div>
-          </div>
-        </>
-      )}
+      <div className="tldMenu__section">
+        <div className="tldMenu__sectionHeader">
+          <span className="tldMenu__label" id="tld-menu-label-transitions">
+            Transitions
+          </span>
+          {transitionIdsWithLocs.length > 0 && (
+            <button
+              type="button"
+              className="tldMenu__sectionToggle"
+              onClick={toggleAllTransitionSubmaps}
+              title={
+                allTransitionSubmapsOpen
+                  ? 'Collapse all sub-maps (every transition with locations)'
+                  : 'Expand all sub-maps (every transition with locations)'
+              }
+              aria-label={
+                allTransitionSubmapsOpen
+                  ? 'Collapse all sub-maps for transitions with locations'
+                  : 'Expand all sub-maps for transitions with locations'
+              }
+            >
+              {allTransitionSubmapsOpen ? '▼' : '▶'}
+            </button>
+          )}
+        </div>
+        <div id="tld-menu-transitions" role="region" aria-labelledby="tld-menu-label-transitions">
+          {maps && transitions.map((t) => renderMapNavGroup(t))}
+        </div>
+      </div>
     </aside>
   )
 
