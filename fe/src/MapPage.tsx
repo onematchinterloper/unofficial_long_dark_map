@@ -488,9 +488,10 @@ export default function MapPage() {
     writeOpenMenuGroupsToCookie(openMenuGroups)
   }, [openMenuGroups])
 
-  // When viewing a sub-map URL, open that parent row so the active item is visible.
+  // When viewing /region/:id or a sub-map URL, open the parent row if it has sub-maps.
   useEffect(() => {
-    if (!maps || !mapPath[0] || !mapPath[1]) return
+    if (!maps || !mapPath[0]) return
+    if (mapPath.length !== 1 && mapPath.length !== 2) return
     if (sortedLocationKeys(maps, mapPath[0]).length === 0) return
     setOpenMenuGroups((prev) => {
       if (prev.has(mapPath[0]!)) return prev
@@ -498,7 +499,7 @@ export default function MapPage() {
       next.add(mapPath[0]!)
       return next
     })
-  }, [maps, mapPath[0], mapPath[1]])
+  }, [maps, mapPath])
 
   const toggleMenuGroup = (id: string) => {
     setOpenMenuGroups((prev) => {
