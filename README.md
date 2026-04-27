@@ -29,3 +29,4 @@ Use `CI=true` so the Vite `base` matches GitHub Pages (`/unofficial-long-dark-ma
 - The site URL is **`https://<your-username>.github.io/unofficial-long-dark-maps/`** (path = repository name).
 
 `fe/vite.config.ts` sets `base` to `/unofficial-long-dark-maps/` when `CI=true`. If the repository name differs, change `base` to `/<repo-name>/`.
+
