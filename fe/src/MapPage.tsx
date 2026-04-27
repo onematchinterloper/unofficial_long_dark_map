@@ -785,7 +785,7 @@ export default function MapPage() {
             ) : mapType === 'topographic' ? (
               <div className="tld__emptyViewer" role="status">
                 <p className="tld__emptyViewer-hint">
-                  No topographic maps for new regions after October 2017.
+                  No topographic maps for new regions Hinterland created after October 2017.
                 </p>
                 <div className="tld__emptyViewer-actions">
                   <button type="button" className="tldMenu__pill" onClick={() => setMapType('pilgrim')}>
