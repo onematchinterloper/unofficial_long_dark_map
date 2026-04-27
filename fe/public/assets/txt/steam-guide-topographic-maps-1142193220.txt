@@ -1,0 +1,8 @@
+Source: The Long Dark Topographic Maps (Steam Community guide)
+https://steamcommunity.com/sharedfiles/filedetails/?id=1142193220
+
+Author: delta
+
+The `topographic` entries use imgur’s smaller “h” direct links (…/IMAGEh.jpg,
+~1024px max edge) derived from the guide’s full-size links, for faster loads.
+Regions in the guide without a matching entry here have no `topographic` key.

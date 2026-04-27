@@ -1,4 +1,4 @@
-export type MapTypeId = 'pilgrim' | 'interloper'
+export type MapTypeId = 'pilgrim' | 'interloper' | 'topographic'
 
 export type MapTypeDef = {
   id: MapTypeId
@@ -6,13 +6,13 @@ export type MapTypeDef = {
   title: string
 }
 
-/** Pilgrim and Interloper only — keys in each `map` in maps.json. */
 export const MAP_TYPE_OPTIONS: readonly MapTypeDef[] = [
   { id: 'pilgrim', title: 'Pilgrim' },
   { id: 'interloper', title: 'Interloper' },
+  { id: 'topographic', title: 'Topographic' },
 ] as const
 
-/** Per-map image URLs, keyed by map type (pilgrim / interloper) */
+/** Per-map image URLs, keyed by map type (e.g. pilgrim / interloper / topographic) */
 export type MapImages = {
   [key: string]: string | undefined
 }
@@ -42,7 +42,7 @@ export type MapsData = {
 }
 
 export function pickValidMapType(current: string): MapTypeId {
-  if (current === 'interloper' || current === 'pilgrim') return current
+  if (current === 'interloper' || current === 'pilgrim' || current === 'topographic') return current
   return 'pilgrim'
 }
 
