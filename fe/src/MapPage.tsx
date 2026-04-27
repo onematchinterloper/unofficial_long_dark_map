@@ -53,11 +53,29 @@ function pathsEqual(a: string[], b: string[]) {
   return a.length === b.length && a.every((s, i) => s === b[i])
 }
 
-function titleForMapPath(path: string[]): string {
-  if (path.length === 0) return 'Great Bear'
+function titleForMapPath(maps: MapsData | null, path: string[]): string {
+  if (path.length === 0) {
+    return maps?.overworld?.title ?? 'Great Bear'
+  }
+  if (maps) {
+    if (path.length === 1) {
+      const id = path[0]
+      if (id) {
+        const t = getRegionNode(maps, id)?.title
+        if (t) return t
+      }
+    } else if (path.length === 2) {
+      const r = path[0]
+      const loc = path[1]
+      if (r && loc) {
+        const t = getRegionNode(maps, r)?.locations?.[loc]?.title
+        if (t) return t
+      }
+    }
+  }
   const area = AREAS.find((a) => pathsEqual(a.path, path))
   if (area) return area.title
-  if (path.length === 1) return path[0]
+  if (path.length === 1) return path[0] ?? 'Map'
   return path[1] ?? path[0] ?? 'Map'
 }
 
@@ -430,7 +448,7 @@ export default function MapPage() {
     }
   }
 
-  const viewerTitle = useMemo(() => titleForMapPath(mapPath), [mapPath])
+  const viewerTitle = useMemo(() => titleForMapPath(maps, mapPath), [maps, mapPath])
 
   const inViewer = mapPath.length > 0
   const menuRegionTitle = inViewer ? viewerTitle : 'Overworld'
@@ -537,7 +555,7 @@ export default function MapPage() {
                 className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')}
                 to={toRegion(r)}
               >
-                {titleForMapPath([r])}
+                {titleForMapPath(maps, [r])}
               </NavLink>
             ))}
           </div>
@@ -550,21 +568,21 @@ export default function MapPage() {
                 className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')}
                 to={toRegion(t)}
               >
-                {titleForMapPath([t])}
+                {titleForMapPath(maps, [t])}
               </NavLink>
             ))}
           </div>
 
           {mapPath.length >= 1 && currentRegionLocations.length > 0 && (
             <div className="tldMenu__section">
-              <div className="tldMenu__label">Inside {titleForMapPath([mapPath[0]])}</div>
+              <div className="tldMenu__label">Inside {titleForMapPath(maps, [mapPath[0]])}</div>
               {currentRegionLocations.map((loc) => (
                 <NavLink
                   key={loc}
                   className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')}
                   to={toLocation(mapPath[0], loc)}
                 >
-                  {titleForMapPath([mapPath[0], loc])}
+                  {titleForMapPath(maps, [mapPath[0], loc])}
                 </NavLink>
               ))}
             </div>
@@ -668,7 +686,7 @@ export default function MapPage() {
             <LinkRectTool
               imageRef={startImgRef}
               mapPath={[]}
-              mapTitle={titleForMapPath([])}
+              mapTitle={titleForMapPath(maps, [])}
               difficulty={difficulty}
             />
           )}

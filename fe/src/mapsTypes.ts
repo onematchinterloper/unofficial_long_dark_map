@@ -5,10 +5,14 @@ export type MapImages = {
 }
 
 export type SubLocation = {
+  /** Display name in the UI (sidebar, header, dev tools) */
+  title?: string
   map: MapImages
 }
 
 export type RegionNode = {
+  /** Display name in the UI (sidebar, header) */
+  title?: string
   map: MapImages
   /** Level 3: POIs / interiors / sub-maps that belong to this region */
   locations?: Record<string, SubLocation>
@@ -17,7 +21,7 @@ export type RegionNode = {
 export type MapsData = {
   version: number
   /** Level 1: whole island / Great Bear (optional URLs if you use JSON for overworld) */
-  overworld: { map: MapImages }
+  overworld: { map: MapImages; title?: string }
   /** Level 2: named regions. Some entries may have `locations` for level 3 */
   regions: Record<string, RegionNode>
   /** Transitional / connector maps (caves, ravines, highway segments, etc.) */
