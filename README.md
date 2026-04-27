@@ -20,13 +20,13 @@ CI=true npm run build
 npm run preview
 ```
 
-Use `CI=true` so the Vite `base` matches GitHub Pages (`/unofficial-long-dark-maps/`).
+Use `CI=true` so the Vite `base` matches GitHub Pages (`/unofficial_long_dark_maps/`).
 
 ## Production (GitHub Pages)
 
 - Repository **Settings → Pages → Build and deployment: GitHub Actions**.
 - Pushes to **`master`** run [`.github/workflows/deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml) and deploy `fe/dist`.
-- The site URL is **`https://<your-username>.github.io/unofficial-long-dark-maps/`** (path = repository name).
+- The site URL is **`https://<your-username>.github.io/unofficial_long_dark_maps/`** (path = repository name).
 
-`fe/vite.config.ts` sets `base` to `/unofficial-long-dark-maps/` when `CI=true`. If the repository name differs, change `base` to `/<repo-name>/`.
+`fe/vite.config.ts` sets `base` to `/unofficial_long_dark_maps/` when `CI=true`. If the repository name differs, change `base` to `/<repo-name>/`.
 
