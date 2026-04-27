@@ -1,4 +1,13 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent, type RefObject } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+  type RefObject,
+  type WheelEvent,
+} from 'react'
 import type { Difficulty, MapsData } from './mapsTypes'
 import { resolveMapUrl } from './mapsTypes'
 import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -238,6 +247,7 @@ export default function MapPage() {
   const startImgRef = useRef<HTMLImageElement | null>(null)
   const viewerRef = useRef<HTMLDivElement | null>(null)
   const viewerImgRef = useRef<HTMLImageElement | null>(null)
+  const wheelFocusRef = useRef<null | { u: number; v: number; clientX: number; clientY: number }>(null)
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
@@ -303,16 +313,46 @@ export default function MapPage() {
 
   // Reset pan/zoom when switching maps or difficulty.
   useEffect(() => {
+    wheelFocusRef.current = null
     setZoom(1)
     setPan({ x: 0, y: 0 })
     setDragging(false)
   }, [selectedMapUrl])
 
-  const applyWheelZoom = (deltaY: number) => {
-    setZoom((z) => {
-      const next = z + (deltaY < 0 ? 0.12 : -0.12)
-      return Math.min(Math.max(next, 0.5), 6)
-    })
+  /** After wheel zoom, correct pan in the same frame (before paint) so there is no one-frame “jump”. */
+  useLayoutEffect(() => {
+    const pending = wheelFocusRef.current
+    if (!pending) return
+    wheelFocusRef.current = null
+    const img = viewerImgRef.current
+    if (!img) return
+    const r1 = img.getBoundingClientRect()
+    if (r1.width < 1 || r1.height < 1) return
+    const { u, v, clientX, clientY } = pending
+    const errX = clientX - (r1.left + u * r1.width)
+    const errY = clientY - (r1.top + v * r1.height)
+    setPan((p) => ({ x: p.x + errX, y: p.y + errY }))
+  }, [zoom])
+
+  const applyWheelZoomToCursor = (e: WheelEvent) => {
+    const img = viewerImgRef.current
+    if (!img) return
+    const r0 = img.getBoundingClientRect()
+    if (r0.width < 1 || r0.height < 1) return
+
+    const u = Math.min(1, Math.max(0, (e.clientX - r0.left) / r0.width))
+    const v = Math.min(1, Math.max(0, (e.clientY - r0.top) / r0.height))
+
+    const z0 = zoom
+    let dy = e.deltaY
+    if (e.deltaMode === 1) dy *= 16
+    if (e.deltaMode === 2) dy *= 800
+    // Exponential step: many small trackpad events accumulate smoothly; large mouse steps still feel continuous.
+    const z1 = Math.min(6, Math.max(0.5, z0 * Math.exp(-dy * 0.0011)))
+    if (Math.abs(z1 - z0) < 1e-5) return
+
+    wheelFocusRef.current = { u, v, clientX: e.clientX, clientY: e.clientY }
+    setZoom(z1)
   }
 
   // Pointer-based drag/pinch.
@@ -523,7 +563,7 @@ export default function MapPage() {
                   .join(' ')}
                 onWheel={(e) => {
                   e.preventDefault()
-                  applyWheelZoom(e.deltaY)
+                  applyWheelZoomToCursor(e)
                 }}
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
