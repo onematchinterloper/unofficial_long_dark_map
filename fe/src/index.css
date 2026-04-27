@@ -286,6 +286,10 @@ body {
   cursor: grabbing;
 }
 
+.tldViewer--linkTool {
+  position: relative;
+}
+
 .tldViewer img {
   max-width: 100%;
   max-height: 100dvh;
@@ -293,4 +297,41 @@ body {
   height: auto;
   will-change: transform;
   pointer-events: none;
+}
+
+.tld__start--linkTool {
+  position: relative;
+}
+
+.tldLinkTool {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.tldLinkTool__box {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px dashed rgba(0, 200, 255, 0.95);
+  background: rgba(0, 200, 255, 0.1);
+  pointer-events: none;
+}
+
+.tldLinkToolHint {
+  flex-shrink: 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #c4e8ff;
+  background: rgba(0, 30, 50, 0.92);
+  border-bottom: 1px solid rgba(0, 200, 255, 0.25);
+}
+
+.tldLinkToolHint code {
+  font-size: 0.85em;
+  padding: 0 0.2em;
+  border-radius: 0.2em;
+  background: rgba(0, 0, 0, 0.35);
 }

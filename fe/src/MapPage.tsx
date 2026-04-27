@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type PointerEvent, type RefObject } from 'react'
 import type { Difficulty, MapsData } from './mapsTypes'
 import { resolveMapUrl } from './mapsTypes'
-import { Link, NavLink, useNavigate, useParams } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 type AreaDef = {
   id: string
@@ -63,6 +63,173 @@ function scaledCoords(coords: AreaDef['coords'], scaleX: number, scaleY: number)
   ].join(',')
 }
 
+/** Unclamped client position → natural image pixels (same convention as `AreaDef.coords` / `maps.json` rects). */
+function clientToNatural(clientX: number, clientY: number, img: HTMLImageElement) {
+  const r = img.getBoundingClientRect()
+  if (r.width < 1 || r.height < 1 || !img.naturalWidth || !img.naturalHeight) {
+    return { x: 0, y: 0 }
+  }
+  const u = (clientX - r.left) / r.width
+  const v = (clientY - r.top) / r.height
+  return {
+    x: u * img.naturalWidth,
+    y: v * img.naturalHeight,
+  }
+}
+
+function naturalRectFromTwoClientPoints(
+  aX: number,
+  aY: number,
+  bX: number,
+  bY: number,
+  img: HTMLImageElement,
+): [number, number, number, number] {
+  const p1 = clientToNatural(aX, aY, img)
+  const p2 = clientToNatural(bX, bY, img)
+  const w = img.naturalWidth
+  const h = img.naturalHeight
+  const x1 = Math.max(0, Math.min(w, Math.round(Math.min(p1.x, p2.x))))
+  const y1 = Math.max(0, Math.min(h, Math.round(Math.min(p1.y, p2.y))))
+  const x2 = Math.max(0, Math.min(w, Math.round(Math.max(p1.x, p2.x))))
+  const y2 = Math.max(0, Math.min(h, Math.round(Math.max(p1.y, p2.y))))
+  return [x1, y1, x2, y2] as [number, number, number, number]
+}
+
+function logLinkToolOutput(opts: {
+  mapPath: string[]
+  mapTitle: string
+  difficulty: Difficulty
+  coords: [number, number, number, number]
+}) {
+  const { mapPath, mapTitle, difficulty, coords } = opts
+  const [x1, y1, x2, y2] = coords
+  const pathJson = JSON.stringify(mapPath)
+  const route =
+    mapPath.length === 0
+      ? '/'
+      : mapPath.length === 1
+        ? `/region/${encodeURIComponent(mapPath[0])}`
+        : `/region/${encodeURIComponent(mapPath[0])}/${encodeURIComponent(mapPath[1] ?? '')}`
+  const block = `
+--- TLD link tool (copy/paste) ---
+map:       ${mapTitle}   (${pathJson} · ${difficulty})
+route:     ${route}
+natural:   [${x1}, ${y1}, ${x2}, ${y2}]
+
+// AreaDef-style (overworld)
+coords:    [${x1}, ${y1}, ${x2}, ${y2}]
+
+// maps.json (example link entry you wire up)
+"coords": [${x1}, ${y1}, ${x2}, ${y2}]
+---`
+  // eslint-disable-next-line no-console
+  console.log(block)
+  const oneline = JSON.stringify({ mapPath, mapTitle, difficulty, coords: [x1, y1, x2, y2] })
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    void navigator.clipboard
+      .writeText(oneline)
+      .then(() => {
+        // eslint-disable-next-line no-console
+        console.log('(also copied one-line JSON to clipboard)')
+      })
+      .catch(() => {
+        // ignore
+      })
+  }
+}
+
+type LinkRectToolProps = {
+  imageRef: RefObject<HTMLImageElement | null>
+  mapPath: string[]
+  mapTitle: string
+  difficulty: Difficulty
+}
+
+function LinkRectTool({ imageRef, mapPath, mapTitle, difficulty }: LinkRectToolProps) {
+  const [rect, setRect] = useState<null | { x: number; y: number; w: number; h: number }>(null)
+  const dragRef = useRef<null | { start: { x: number; y: number } }>(null)
+
+  const localFromEvent = (e: PointerEvent<HTMLDivElement>) => {
+    const t = e.currentTarget
+    const b = t.getBoundingClientRect()
+    return { x: e.clientX - b.left, y: e.clientY - b.top }
+  }
+
+  return (
+    <div
+      className="tldLinkTool"
+      onPointerDown={(e) => {
+        if (e.button !== 0) return
+        e.preventDefault()
+        e.stopPropagation()
+        e.currentTarget.setPointerCapture(e.pointerId)
+        const p = localFromEvent(e)
+        dragRef.current = { start: p }
+        setRect({ x: p.x, y: p.y, w: 0, h: 0 })
+      }}
+      onPointerMove={(e) => {
+        const d = dragRef.current
+        if (!d) return
+        e.preventDefault()
+        e.stopPropagation()
+        const p = localFromEvent(e)
+        const x1 = Math.min(d.start.x, p.x)
+        const y1 = Math.min(d.start.y, p.y)
+        const w = Math.abs(p.x - d.start.x)
+        const h = Math.abs(p.y - d.start.y)
+        setRect({ x: x1, y: y1, w, h })
+      }}
+      onPointerUp={(e) => {
+        const d = dragRef.current
+        dragRef.current = null
+        e.preventDefault()
+        e.stopPropagation()
+        if (d) {
+          try {
+            e.currentTarget.releasePointerCapture(e.pointerId)
+          } catch {
+            // ignore
+          }
+        }
+        if (!d) {
+          setRect(null)
+          return
+        }
+        const p = localFromEvent(e)
+        setRect(null)
+        const el = e.currentTarget
+        const b = el.getBoundingClientRect()
+        const aX = b.left + d.start.x
+        const aY = b.top + d.start.y
+        const bX = b.left + p.x
+        const bY = b.top + p.y
+        const img = imageRef.current
+        if (!img?.naturalWidth) return
+        if (Math.abs(bX - aX) < 3 && Math.abs(bY - aY) < 3) return
+        const coords = naturalRectFromTwoClientPoints(aX, aY, bX, bY, img)
+        if (coords[0] === coords[2] || coords[1] === coords[3]) return
+        logLinkToolOutput({ mapPath, mapTitle, difficulty, coords })
+      }}
+      onPointerCancel={(e) => {
+        dragRef.current = null
+        setRect(null)
+        try {
+          e.currentTarget.releasePointerCapture(e.pointerId)
+        } catch {
+          // ignore
+        }
+      }}
+    >
+      {rect && rect.w + rect.h > 0 && (
+        <div
+          className="tldLinkTool__box"
+          style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
+        />
+      )}
+    </div>
+  )
+}
+
 export default function MapPage() {
   const [difficulty, setDifficulty] = useState<Difficulty>('pilgrim')
   const [maps, setMaps] = useState<MapsData | null>(null)
@@ -75,7 +242,10 @@ export default function MapPage() {
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { regionId, locationId } = useParams()
+  const linkTool =
+    searchParams.get('linkTool') === '1' || searchParams.get('linkTool') === 'true'
   /** Empty = level 1 (overworld / homemap). [region] = level 2. [region, sub] = level 3. */
   const mapPath = useMemo(() => {
     if (!regionId) return []
@@ -334,11 +504,23 @@ export default function MapPage() {
       <main className="tldLayout">
         {menu}
         <div className="tldMain">
+          {linkTool && (
+            <div className="tldLinkToolHint" role="status">
+              Link tool: drag a rectangle. Output in the console (F12). One-line JSON is copied to the clipboard
+              if allowed. <code>Wheel</code> still zooms. Add <code>?linkTool=1</code> to the URL, remove it
+              to pan the map again.
+            </div>
+          )}
           <section className="tld__viewer" aria-label="Map viewer">
             {selectedMapUrl ? (
               <div
                 ref={viewerRef}
-                className={dragging ? 'tldViewer tldViewer--dragging' : 'tldViewer'}
+                className={[
+                  dragging && !linkTool ? 'tldViewer tldViewer--dragging' : 'tldViewer',
+                  linkTool ? 'tldViewer--linkTool' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 onWheel={(e) => {
                   e.preventDefault()
                   applyWheelZoom(e.deltaY)
@@ -358,6 +540,14 @@ export default function MapPage() {
                     transformOrigin: 'center center',
                   }}
                 />
+                {linkTool && (
+                  <LinkRectTool
+                    imageRef={viewerImgRef}
+                    mapPath={mapPath}
+                    mapTitle={viewerTitle}
+                    difficulty={difficulty}
+                  />
+                )}
               </div>
             ) : (
               <p className="tld__missing">No image URL in maps.json for this path and difficulty.</p>
@@ -372,12 +562,22 @@ export default function MapPage() {
     <main className="tldLayout">
       {menu}
       <div className="tldMain">
-        <section className="tld__start" aria-label="World map">
+        {linkTool && (
+          <div className="tldLinkToolHint" role="status">
+            Link tool: drag a rectangle on the world map. Output in the console. Overworld uses natural
+            <code>homemap.png</code> pixels, same as <code>AREAS</code> / image map entries. Remove{' '}
+            <code>?linkTool=1</code> to use region links again.
+          </div>
+        )}
+        <section
+          className={linkTool ? 'tld__start tld__start--linkTool' : 'tld__start'}
+          aria-label="World map"
+        >
           <img
             ref={startImgRef}
             src={startMapSrc}
             alt="Start Map"
-            useMap="#map-links"
+            useMap={linkTool ? undefined : '#map-links'}
             id="start-map-image"
             draggable={false}
             onLoad={() => {
@@ -407,6 +607,14 @@ export default function MapPage() {
               />
             ))}
           </map>
+          {linkTool && (
+            <LinkRectTool
+              imageRef={startImgRef}
+              mapPath={[]}
+              mapTitle={titleForMapPath([])}
+              difficulty={difficulty}
+            />
+          )}
         </section>
       </div>
     </main>
