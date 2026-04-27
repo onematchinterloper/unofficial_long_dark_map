@@ -20,6 +20,13 @@ export type MapsData = {
   overworld: { map: MapImages }
   /** Level 2: named regions. Some entries may have `locations` for level 3 */
   regions: Record<string, RegionNode>
+  /** Transitional / connector maps (caves, ravines, highway segments, etc.) */
+  transitions: Record<string, RegionNode>
+}
+
+/** Resolves a level-2 or level-3 map node: regions first, then transitions (ids do not overlap). */
+export function getRegionNode(data: MapsData, id: string): RegionNode | undefined {
+  return data.regions[id] ?? data.transitions[id]
 }
 
 export function resolveMapUrl(
@@ -31,10 +38,10 @@ export function resolveMapUrl(
     return data.overworld.map[difficulty] ?? null
   }
   if (path.length === 1) {
-    return data.regions[path[0]]?.map[difficulty] ?? null
+    return getRegionNode(data, path[0])?.map[difficulty] ?? null
   }
   if (path.length === 2) {
-    return data.regions[path[0]]?.locations?.[path[1]]?.map[difficulty] ?? null
+    return getRegionNode(data, path[0])?.locations?.[path[1]]?.map[difficulty] ?? null
   }
   return null
 }

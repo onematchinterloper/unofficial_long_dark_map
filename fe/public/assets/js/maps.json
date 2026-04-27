@@ -105,34 +105,24 @@
         }
       }
     },
-    "transition-cave": {
-      "map": {
-        "pilgrim": "https://images.steamusercontent.com/ugc/2529416016912058547/B3B1BC18D40080358198B357C1F717A612BDC794/",
-        "interloper": "https://images.steamusercontent.com/ugc/2529416016912058547/B3B1BC18D40080358198B357C1F717A612BDC794/"
-      }
-    },
     "sundered-pass": {
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/13234845787225905708/3CCD158148CAF4F6E5651269D63AA378F2C7B361/",
         "interloper": "https://images.steamusercontent.com/ugc/16979676319684412643/EE2D7A9F25D9742C4F9256678705F0A0B8286A48/"
       }
-    },
-    "ravine": {
-      "map": {
-        "pilgrim": "https://images.steamusercontent.com/ugc/37819645136730001/C7DC749F7E776CAA177FC3B5A0E679D01CF8B63C/",
-        "interloper": "https://images.steamusercontent.com/ugc/37819645136730182/3961F5EF2C43A79B7F730CD52F7EE1B8554EB1C6/"
-      }
-    },
-    "winding-river-&-carter-hydro-dam": {
-      "map": {
-        "pilgrim": "https://images.steamusercontent.com/ugc/37819645136732320/2F95CDD280AF1BD5D52072DD0B242519C099F433/",
-        "interloper": "https://images.steamusercontent.com/ugc/37819645136732699/CD74A44711B35D34DC967262E7E90ECAA227B999/"
-      }
-    },
+    }
+  },
+  "transitions": {
     "crumbling-highway": {
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/37819645136723139/6CF8012DCBEE7E4C21BAA1373D076B13C8D2E545/",
         "interloper": "https://images.steamusercontent.com/ugc/37819645136723139/6CF8012DCBEE7E4C21BAA1373D076B13C8D2E545/"
+      }
+    },
+    "far-range-branch-line": {
+      "map": {
+        "pilgrim": "https://images.steamusercontent.com/ugc/12967305776514005370/390463FA1E9F539BCB876BF25E3065276D75DED2/",
+        "interloper": "https://images.steamusercontent.com/ugc/10893453294679762817/2CC6706F93D63DD60EF48511CB98A2B27EF149A9/"
       }
     },
     "keepers-pass": {
@@ -141,10 +131,22 @@
         "interloper": "https://images.steamusercontent.com/ugc/16055965560201475697/BF5677731E7CE8A282819D01C96AB5486A6E478/"
       }
     },
-    "far-range-branch-line": {
+    "ravine": {
       "map": {
-        "pilgrim": "https://images.steamusercontent.com/ugc/12967305776514005370/390463FA1E9F539BCB876BF25E3065276D75DED2/",
-        "interloper": "https://images.steamusercontent.com/ugc/10893453294679762817/2CC6706F93D63DD60EF48511CB98A2B27EF149A9/"
+        "pilgrim": "https://images.steamusercontent.com/ugc/37819645136730001/C7DC749F7E776CAA177FC3B5A0E679D01CF8B63C/",
+        "interloper": "https://images.steamusercontent.com/ugc/37819645136730182/3961F5EF2C43A79B7F730CD52F7EE1B8554EB1C6/"
+      }
+    },
+    "transition-cave": {
+      "map": {
+        "pilgrim": "https://images.steamusercontent.com/ugc/2529416016912058547/B3B1BC18D40080358198B357C1F717A612BDC794/",
+        "interloper": "https://images.steamusercontent.com/ugc/2529416016912058547/B3B1BC18D40080358198B357C1F717A612BDC794/"
+      }
+    },
+    "winding-river-&-carter-hydro-dam": {
+      "map": {
+        "pilgrim": "https://images.steamusercontent.com/ugc/37819645136732320/2F95CDD280AF1BD5D52072DD0B242519C099F433/",
+        "interloper": "https://images.steamusercontent.com/ugc/37819645136732699/CD74A44711B35D34DC967262E7E90ECAA227B999/"
       }
     }
   }

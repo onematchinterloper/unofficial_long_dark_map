@@ -8,7 +8,7 @@ import {
   type RefObject,
 } from 'react'
 import type { Difficulty, MapsData } from './mapsTypes'
-import { resolveMapUrl } from './mapsTypes'
+import { getRegionNode, resolveMapUrl } from './mapsTypes'
 import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 type AreaDef = {
@@ -440,11 +440,16 @@ export default function MapPage() {
     return Object.keys(maps.regions).sort((a, b) => a.localeCompare(b))
   }, [maps])
 
+  const transitions = useMemo(() => {
+    if (!maps) return []
+    return Object.keys(maps.transitions).sort((a, b) => a.localeCompare(b))
+  }, [maps])
+
   const currentRegionLocations = useMemo(() => {
     if (!maps) return []
     const regionId = mapPath[0]
     if (!regionId) return []
-    const locs = maps.regions[regionId]?.locations
+    const locs = getRegionNode(maps, regionId)?.locations
     if (!locs) return []
     return Object.keys(locs).sort((a, b) => a.localeCompare(b))
   }, [maps, mapPath])
@@ -533,6 +538,19 @@ export default function MapPage() {
                 to={toRegion(r)}
               >
                 {titleForMapPath([r])}
+              </NavLink>
+            ))}
+          </div>
+
+          <div className="tldMenu__section">
+            <div className="tldMenu__label">Transitions</div>
+            {transitions.map((t) => (
+              <NavLink
+                key={t}
+                className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')}
+                to={toRegion(t)}
+              >
+                {titleForMapPath([t])}
               </NavLink>
             ))}
           </div>
