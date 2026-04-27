@@ -52,6 +52,12 @@ function pathsEqual(a: string[], b: string[]) {
   return a.length === b.length && a.every((s, i) => s === b[i])
 }
 
+function sortedLocationKeys(maps: MapsData, regionId: string): string[] {
+  const locs = getRegionNode(maps, regionId)?.locations
+  if (!locs) return []
+  return Object.keys(locs).sort((a, b) => a.localeCompare(b))
+}
+
 function titleForMapPath(maps: MapsData | null, path: string[]): string {
   if (path.length === 0) {
     return maps?.overworld?.title ?? 'Great Bear'
@@ -459,14 +465,77 @@ export default function MapPage() {
     return Object.keys(maps.transitions).sort((a, b) => a.localeCompare(b))
   }, [maps])
 
-  const currentRegionLocations = useMemo(() => {
-    if (!maps) return []
-    const regionId = mapPath[0]
-    if (!regionId) return []
-    const locs = getRegionNode(maps, regionId)?.locations
-    if (!locs) return []
-    return Object.keys(locs).sort((a, b) => a.localeCompare(b))
-  }, [maps, mapPath])
+  /** Which region/transition groups are expanded in the sidebar (sub-maps visible). Default: collapsed. */
+  const [openMenuGroups, setOpenMenuGroups] = useState<Set<string>>(() => new Set())
+
+  // When viewing a sub-map URL, open that parent row so the active item is visible.
+  useEffect(() => {
+    if (!maps || !mapPath[0] || !mapPath[1]) return
+    if (sortedLocationKeys(maps, mapPath[0]).length === 0) return
+    setOpenMenuGroups((prev) => {
+      if (prev.has(mapPath[0]!)) return prev
+      const next = new Set(prev)
+      next.add(mapPath[0]!)
+      return next
+    })
+  }, [maps, mapPath[0], mapPath[1]])
+
+  const toggleMenuGroup = (id: string) => {
+    setOpenMenuGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const regionIdsWithLocs = useMemo(() => {
+    if (!maps) return [] as string[]
+    return regions.filter((r) => sortedLocationKeys(maps, r).length > 0)
+  }, [maps, regions])
+
+  const transitionIdsWithLocs = useMemo(() => {
+    if (!maps) return [] as string[]
+    return transitions.filter((t) => sortedLocationKeys(maps, t).length > 0)
+  }, [maps, transitions])
+
+  const allRegionSubmapsOpen = useMemo(
+    () => regionIdsWithLocs.length > 0 && regionIdsWithLocs.every((r) => openMenuGroups.has(r)),
+    [regionIdsWithLocs, openMenuGroups],
+  )
+
+  const allTransitionSubmapsOpen = useMemo(
+    () => transitionIdsWithLocs.length > 0 && transitionIdsWithLocs.every((t) => openMenuGroups.has(t)),
+    [transitionIdsWithLocs, openMenuGroups],
+  )
+
+  const toggleAllRegionSubmaps = () => {
+    if (!maps) return
+    setOpenMenuGroups((prev) => {
+      const next = new Set(prev)
+      if (regionIdsWithLocs.length === 0) return prev
+      const all = regionIdsWithLocs.every((r) => next.has(r))
+      for (const r of regionIdsWithLocs) {
+        if (all) next.delete(r)
+        else next.add(r)
+      }
+      return next
+    })
+  }
+
+  const toggleAllTransitionSubmaps = () => {
+    if (!maps) return
+    setOpenMenuGroups((prev) => {
+      const next = new Set(prev)
+      if (transitionIdsWithLocs.length === 0) return prev
+      const all = transitionIdsWithLocs.every((t) => next.has(t))
+      for (const t of transitionIdsWithLocs) {
+        if (all) next.delete(t)
+        else next.add(t)
+      }
+      return next
+    })
+  }
 
   const goTo = (nextPath: string[]) => {
     if (nextPath.length === 0) {
@@ -478,6 +547,72 @@ export default function MapPage() {
       return
     }
     navigate(toLocation(nextPath[0], nextPath[1] ?? ''))
+  }
+
+  const renderMapNavGroup = (id: string) => {
+    if (!maps) return null
+    const locIds = sortedLocationKeys(maps, id)
+    const title = titleForMapPath(maps, [id])
+    if (locIds.length === 0) {
+      return (
+        <NavLink
+          key={id}
+          className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')}
+          to={toRegion(id)}
+        >
+          {title}
+        </NavLink>
+      )
+    }
+    const expanded = openMenuGroups.has(id)
+    return (
+      <div key={id} className="tldMenu__group">
+        <div className="tldMenu__groupHeader">
+          <NavLink
+            className={({ isActive }) =>
+              [
+                'tldMenu__item',
+                'tldMenu__item--grow',
+                isActive ? 'active' : '',
+                mapPath[0] === id && mapPath[1] ? 'tldMenu__item--branch' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
+            }
+            to={toRegion(id)}
+            end
+          >
+            {title}
+          </NavLink>
+          <button
+            type="button"
+            className="tldMenu__chevron"
+            onClick={() => toggleMenuGroup(id)}
+            aria-expanded={expanded}
+            title={expanded ? 'Hide sub-maps' : 'Show sub-maps'}
+          >
+            {expanded ? '▼' : '▶'}
+          </button>
+        </div>
+        {expanded && (
+          <div className="tldMenu__sub" role="group" aria-label={`${title} sub-maps`}>
+            {locIds.map((loc) => (
+              <NavLink
+                key={loc}
+                className={({ isActive }) =>
+                  isActive
+                    ? 'tldMenu__item tldMenu__item--sub active'
+                    : 'tldMenu__item tldMenu__item--sub'
+                }
+                to={toLocation(id, loc)}
+              >
+                {titleForMapPath(maps, [id, loc])}
+              </NavLink>
+            ))}
+          </div>
+        )}
+      </div>
+    )
   }
 
   const menu = (
@@ -513,14 +648,6 @@ export default function MapPage() {
             <NavLink className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')} to={toHome()}>
               Home
             </NavLink>
-            {mapPath.length > 1 && (
-              <NavLink
-                className="tldMenu__item"
-                to={mapPath.length === 2 ? toRegion(mapPath[0]) : toHome()}
-              >
-                Up one level
-              </NavLink>
-            )}
           </div>
 
           <div className="tldMenu__section">
@@ -544,45 +671,64 @@ export default function MapPage() {
           </div>
 
           <div className="tldMenu__section">
-            <div className="tldMenu__label">Regions</div>
-            {regions.map((r) => (
-              <NavLink
-                key={r}
-                className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')}
-                to={toRegion(r)}
-              >
-                {titleForMapPath(maps, [r])}
-              </NavLink>
-            ))}
+            <div className="tldMenu__sectionHeader">
+              <span className="tldMenu__label" id="tld-menu-label-regions">
+                Regions
+              </span>
+              {regionIdsWithLocs.length > 0 && (
+                <button
+                  type="button"
+                  className="tldMenu__sectionToggle"
+                  onClick={toggleAllRegionSubmaps}
+                  title={
+                    allRegionSubmapsOpen
+                      ? 'Collapse all sub-maps (every region with locations)'
+                      : 'Expand all sub-maps (every region with locations)'
+                  }
+                  aria-label={
+                    allRegionSubmapsOpen
+                      ? 'Collapse all sub-maps for regions with locations'
+                      : 'Expand all sub-maps for regions with locations'
+                  }
+                >
+                  {allRegionSubmapsOpen ? '▼' : '▶'}
+                </button>
+              )}
+            </div>
+            <div id="tld-menu-regions" role="region" aria-labelledby="tld-menu-label-regions">
+              {maps && regions.map((r) => renderMapNavGroup(r))}
+            </div>
           </div>
 
           <div className="tldMenu__section">
-            <div className="tldMenu__label">Transitions</div>
-            {transitions.map((t) => (
-              <NavLink
-                key={t}
-                className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')}
-                to={toRegion(t)}
-              >
-                {titleForMapPath(maps, [t])}
-              </NavLink>
-            ))}
-          </div>
-
-          {mapPath.length >= 1 && currentRegionLocations.length > 0 && (
-            <div className="tldMenu__section">
-              <div className="tldMenu__label">Inside {titleForMapPath(maps, [mapPath[0]])}</div>
-              {currentRegionLocations.map((loc) => (
-                <NavLink
-                  key={loc}
-                  className={({ isActive }) => (isActive ? 'tldMenu__item active' : 'tldMenu__item')}
-                  to={toLocation(mapPath[0], loc)}
+            <div className="tldMenu__sectionHeader">
+              <span className="tldMenu__label" id="tld-menu-label-transitions">
+                Transitions
+              </span>
+              {transitionIdsWithLocs.length > 0 && (
+                <button
+                  type="button"
+                  className="tldMenu__sectionToggle"
+                  onClick={toggleAllTransitionSubmaps}
+                  title={
+                    allTransitionSubmapsOpen
+                      ? 'Collapse all sub-maps (every transition with locations)'
+                      : 'Expand all sub-maps (every transition with locations)'
+                  }
+                  aria-label={
+                    allTransitionSubmapsOpen
+                      ? 'Collapse all sub-maps for transitions with locations'
+                      : 'Expand all sub-maps for transitions with locations'
+                  }
                 >
-                  {titleForMapPath(maps, [mapPath[0], loc])}
-                </NavLink>
-              ))}
+                  {allTransitionSubmapsOpen ? '▼' : '▶'}
+                </button>
+              )}
             </div>
-          )}
+            <div id="tld-menu-transitions" role="region" aria-labelledby="tld-menu-label-transitions">
+              {maps && transitions.map((t) => renderMapNavGroup(t))}
+            </div>
+          </div>
         </>
       )}
     </aside>

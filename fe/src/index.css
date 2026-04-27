@@ -194,13 +194,44 @@ body {
 }
 
 .tldMenu__section {
-  margin: 12px 0;
+  margin: 10px 0;
 }
 
 .tldMenu__label {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 8px;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.58);
+  margin: 0 0 6px;
+}
+
+.tldMenu__sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tldMenu__sectionHeader .tldMenu__label {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.tldMenu__sectionToggle {
+  flex: 0 0 32px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  font-size: 0.6rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.tldMenu__sectionToggle:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .tldMenu__row {
@@ -229,10 +260,10 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   color: inherit;
-  padding: 10px 10px;
+  padding: 9px 10px;
   border-radius: 10px;
   cursor: pointer;
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   text-decoration: none;
   display: block;
 }
@@ -242,6 +273,129 @@ body {
 }
 
 .tldMenu__item.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* Region + sub-maps: same “pill” look as a plain region, header is one bar with a split chevron. */
+.tldMenu__group {
+  margin: 0 0 6px;
+}
+
+.tldMenu__groupHeader {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tldMenu__groupHeader:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tldMenu__groupHeader:has(> a.active) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.tldMenu__groupHeader:has(> a.tldMenu__item--branch) {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.tldMenu__group:has(.tldMenu__item--sub.active) .tldMenu__groupHeader {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tldMenu__groupHeader .tldMenu__item--grow {
+  width: auto;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-weight: inherit;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+.tldMenu__groupHeader .tldMenu__item--grow.tldMenu__item--branch {
+  border: none;
+  opacity: 1;
+}
+
+.tldMenu__groupHeader .tldMenu__item--grow:hover {
+  background: transparent;
+}
+
+.tldMenu__groupHeader:has(> a.active) .tldMenu__item--grow,
+.tldMenu__groupHeader:has(> a.tldMenu__item--branch) .tldMenu__item--grow {
+  background: transparent;
+}
+
+.tldMenu__chevron {
+  flex: 0 0 36px;
+  min-height: 0;
+  align-self: stretch;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  font-size: 0.65rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.tldMenu__chevron:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tldMenu__item--grow {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.tldMenu__item--branch:not(.active) {
+  border-style: dashed;
+  opacity: 0.95;
+}
+
+.tldMenu__sub {
+  margin: 4px 0 0 0;
+  padding: 0 0 0 10px;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.tldMenu__item--sub {
+  margin-bottom: 0;
+  padding: 9px 10px;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  text-align: right;
+  /* match .tldMenu__item surface */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tldMenu__item--sub:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tldMenu__item--sub.active {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.28);
 }
