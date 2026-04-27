@@ -6,7 +6,6 @@ import {
   useState,
   type PointerEvent,
   type RefObject,
-  type WheelEvent,
 } from 'react'
 import type { Difficulty, MapsData } from './mapsTypes'
 import { resolveMapUrl } from './mapsTypes'
@@ -354,6 +353,25 @@ export default function MapPage() {
     setZoom(z1)
   }
 
+  const applyWheelZoomRef = useRef(applyWheelZoomToCursor)
+  applyWheelZoomRef.current = applyWheelZoomToCursor
+
+  // React’s onWheel is passive, so preventDefault() fails and the browser logs errors. Real listener
+  // (non-passive) is required to take over scrolling for zoom.
+  useEffect(() => {
+    if (mapPath.length === 0) return
+    const el = viewerRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      applyWheelZoomRef.current(e)
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => {
+      el.removeEventListener('wheel', onWheel)
+    }
+  }, [mapPath, selectedMapUrl])
+
   // Pointer-based drag/pinch.
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchRef = useRef<{ dist: number; zoom: number } | null>(null)
@@ -553,10 +571,6 @@ export default function MapPage() {
                 ]
                   .filter(Boolean)
                   .join(' ')}
-                onWheel={(e) => {
-                  e.preventDefault()
-                  applyWheelZoomToCursor(e)
-                }}
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUpOrCancel}
