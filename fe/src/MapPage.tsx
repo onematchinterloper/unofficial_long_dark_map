@@ -9,6 +9,14 @@ import {
 } from 'react'
 import type { Difficulty, MapsData } from './mapsTypes'
 import { getRegionNode, resolveMapUrl } from './mapsTypes'
+import {
+  readDifficultyFromCookie,
+  readMenuCollapsedFromCookie,
+  readOpenMenuGroupsFromCookie,
+  writeDifficultyToCookie,
+  writeMenuCollapsedToCookie,
+  writeOpenMenuGroupsToCookie,
+} from './cookies'
 import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 type AreaDef = {
@@ -259,9 +267,9 @@ function LinkRectTool({ imageRef, mapPath, mapTitle, difficulty }: LinkRectToolP
 }
 
 export default function MapPage() {
-  const [difficulty, setDifficulty] = useState<Difficulty>('pilgrim')
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => readDifficultyFromCookie())
   const [maps, setMaps] = useState<MapsData | null>(null)
-  const [menuCollapsed, setMenuCollapsed] = useState(false)
+  const [menuCollapsed, setMenuCollapsed] = useState(() => readMenuCollapsedFromCookie())
   const [imgScale, setImgScale] = useState<{ x: number; y: number } | null>(null)
   const startImgRef = useRef<HTMLImageElement | null>(null)
   const viewerRef = useRef<HTMLDivElement | null>(null)
@@ -466,7 +474,19 @@ export default function MapPage() {
   }, [maps])
 
   /** Which region/transition groups are expanded in the sidebar (sub-maps visible). Default: collapsed. */
-  const [openMenuGroups, setOpenMenuGroups] = useState<Set<string>>(() => new Set())
+  const [openMenuGroups, setOpenMenuGroups] = useState<Set<string>>(() => readOpenMenuGroupsFromCookie())
+
+  useEffect(() => {
+    writeDifficultyToCookie(difficulty)
+  }, [difficulty])
+
+  useEffect(() => {
+    writeMenuCollapsedToCookie(menuCollapsed)
+  }, [menuCollapsed])
+
+  useEffect(() => {
+    writeOpenMenuGroupsToCookie(openMenuGroups)
+  }, [openMenuGroups])
 
   // When viewing a sub-map URL, open that parent row so the active item is visible.
   useEffect(() => {
