@@ -778,6 +778,24 @@ export default function MapPage() {
                   />
                 )}
               </div>
+            ) : !maps ? (
+              <p className="tld__missing" role="status">
+                Loading map data…
+              </p>
+            ) : mapType === 'topographic' ? (
+              <div className="tld__emptyViewer" role="status">
+                <p className="tld__emptyViewer-hint">
+                  No topographic maps for new regions after October 2017.
+                </p>
+                <div className="tld__emptyViewer-actions">
+                  <button type="button" className="tldMenu__pill" onClick={() => setMapType('pilgrim')}>
+                    Use Pilgrim
+                  </button>
+                  <button type="button" className="tldMenu__pill" onClick={() => setMapType('interloper')}>
+                    Use Interloper
+                  </button>
+                </div>
+              </div>
             ) : (
               <p className="tld__missing">No image URL in maps.json for this path and map type.</p>
             )}
