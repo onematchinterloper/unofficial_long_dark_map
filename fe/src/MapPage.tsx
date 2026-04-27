@@ -120,7 +120,7 @@ function logLinkToolOutput(opts: {
         ? `/region/${encodeURIComponent(mapPath[0])}`
         : `/region/${encodeURIComponent(mapPath[0])}/${encodeURIComponent(mapPath[1] ?? '')}`
   const block = `
---- TLD link tool (copy/paste) ---
+--- TLD dev (copy/paste) ---
 map:       ${mapTitle}   (${pathJson} · ${difficulty})
 route:     ${route}
 natural:   [${x1}, ${y1}, ${x2}, ${y2}]
@@ -166,7 +166,7 @@ function LinkRectTool({ imageRef, mapPath, mapTitle, difficulty }: LinkRectToolP
 
   return (
     <div
-      className="tldLinkTool"
+      className="tldDev"
       onPointerDown={(e) => {
         if (e.button !== 0) return
         e.preventDefault()
@@ -231,7 +231,7 @@ function LinkRectTool({ imageRef, mapPath, mapTitle, difficulty }: LinkRectToolP
     >
       {rect && rect.w + rect.h > 0 && (
         <div
-          className="tldLinkTool__box"
+          className="tldDev__box"
           style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
         />
       )}
@@ -254,8 +254,7 @@ export default function MapPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { regionId, locationId } = useParams()
-  const linkTool =
-    searchParams.get('linkTool') === '1' || searchParams.get('linkTool') === 'true'
+  const isDev = searchParams.get('dev') === '1' || searchParams.get('dev') === 'true'
   /** Empty = level 1 (overworld / homemap). [region] = level 2. [region, sub] = level 3. */
   const mapPath = useMemo(() => {
     if (!regionId) return []
@@ -544,20 +543,13 @@ export default function MapPage() {
       <main className="tldLayout">
         {menu}
         <div className="tldMain">
-          {linkTool && (
-            <div className="tldLinkToolHint" role="status">
-              Link tool: drag a rectangle. Output in the console (F12). One-line JSON is copied to the clipboard
-              if allowed. <code>Wheel</code> still zooms. Add <code>?linkTool=1</code> to the URL, remove it
-              to pan the map again.
-            </div>
-          )}
           <section className="tld__viewer" aria-label="Map viewer">
             {selectedMapUrl ? (
               <div
                 ref={viewerRef}
                 className={[
-                  dragging && !linkTool ? 'tldViewer tldViewer--dragging' : 'tldViewer',
-                  linkTool ? 'tldViewer--linkTool' : '',
+                  dragging && !isDev ? 'tldViewer tldViewer--dragging' : 'tldViewer',
+                  isDev ? 'tldViewer--dev' : '',
                 ]
                   .filter(Boolean)
                   .join(' ')}
@@ -580,7 +572,7 @@ export default function MapPage() {
                     transformOrigin: 'center center',
                   }}
                 />
-                {linkTool && (
+                {isDev && (
                   <LinkRectTool
                     imageRef={viewerImgRef}
                     mapPath={mapPath}
@@ -602,22 +594,15 @@ export default function MapPage() {
     <main className="tldLayout">
       {menu}
       <div className="tldMain">
-        {linkTool && (
-          <div className="tldLinkToolHint" role="status">
-            Link tool: drag a rectangle on the world map. Output in the console. Overworld uses natural
-            <code>homemap.png</code> pixels, same as <code>AREAS</code> / image map entries. Remove{' '}
-            <code>?linkTool=1</code> to use region links again.
-          </div>
-        )}
         <section
-          className={linkTool ? 'tld__start tld__start--linkTool' : 'tld__start'}
+          className={isDev ? 'tld__start tld__start--dev' : 'tld__start'}
           aria-label="World map"
         >
           <img
             ref={startImgRef}
             src={startMapSrc}
             alt="Start Map"
-            useMap={linkTool ? undefined : '#map-links'}
+            useMap={isDev ? undefined : '#map-links'}
             id="start-map-image"
             draggable={false}
             onLoad={() => {
@@ -647,7 +632,7 @@ export default function MapPage() {
               />
             ))}
           </map>
-          {linkTool && (
+          {isDev && (
             <LinkRectTool
               imageRef={startImgRef}
               mapPath={[]}
