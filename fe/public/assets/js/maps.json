@@ -132,56 +132,56 @@
   },
   "transitions": {
     "cave-brm-twm": {
-      "title": "Cave (BRM – TWM) — Blackrock to Timberwolf",
+      "title": "Cave (BRM – TWM)",
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/1845912122777780024/3C67D4A1501D65A1BD24EF4584715732B9850946/",
         "interloper": "https://images.steamusercontent.com/ugc/1845912122777780024/3C67D4A1501D65A1BD24EF4584715732B9850946/"
       }
     },
     "cave-fm-bi": {
-      "title": "Cave (FM – BI) — Forlorn Muskeg to Bleak Inlet",
+      "title": "Cave (FM – BI)",
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/1482201102143904799/2CA906EB5BEE80FBB6676000723ED28C13C4A8A3/",
         "interloper": "https://images.steamusercontent.com/ugc/1482201102143904799/2CA906EB5BEE80FBB6676000723ED28C13C4A8A3/"
       }
     },
     "cave-ml-mt": {
-      "title": "Cave (ML–MT) — Mystery Lake to Mountain Town",
+      "title": "Cave (ML–MT)",
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/1720911902129331067/CC5ED2A8A5271B3CEC41AD52EC96813DAF50DCB6/",
         "interloper": "https://images.steamusercontent.com/ugc/1720911902129331067/CC5ED2A8A5271B3CEC41AD52EC96813DAF50DCB6/"
       }
     },
     "cave-mt-hrv": {
-      "title": "Cave (MT – HRV) — Mountain Town to Hushed River Valley",
+      "title": "Cave (MT – HRV)",
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/1845912645720669141/7B0964514B7BF2C49C057773CDB54CABA7130872/",
         "interloper": "https://images.steamusercontent.com/ugc/1845912645720669141/7B0964514B7BF2C49C057773CDB54CABA7130872/"
       }
     },
     "cave-pv-wr": {
-      "title": "Cave (PV – WR) — Pleasant Valley to Winding River",
+      "title": "Cave (PV – WR)",
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/1720911902129152566/F22D4113FCD625A8F8B0B7FB4553D19BF8F50BA5/",
         "interloper": "https://images.steamusercontent.com/ugc/1720911902129152566/F22D4113FCD625A8F8B0B7FB4553D19BF8F50BA5/"
       }
     },
     "cave-twm-ac": {
-      "title": "Cave (TWM – AC) — Timberwolf to Ash Canyon",
+      "title": "Cave (TWM – AC)",
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/1835791752086664996/227CCC6133D6B091C22E4612065B82088E962B27/",
         "interloper": "https://images.steamusercontent.com/ugc/1835791752086664996/227CCC6133D6B091C22E4612065B82088E962B27/"
       }
     },
     "cinder-hills-coal-mine-ch-pv": {
-      "title": "Cinder Hills Coal Mine (CH – PV) — Abandoned mine (upper)",
+      "title": "Coal Mine (CH – PV)",
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/757096736641844835/E470D653C75B185BB68AB4FFC3F3D519EA5597EB/",
         "interloper": "https://images.steamusercontent.com/ugc/757096736641844835/E470D653C75B185BB68AB4FFC3F3D519EA5597EB/"
       }
     },
     "coal-mine-no3-oiccrh-dp": {
-      "title": "No.3 Coal Mine (OIC – Desolation Point)",
+      "title": "Coal Mine (OIC – DP)",
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/1485579230721333806/D860541F6554853868E9C7F52E7FC892917B7A32/",
         "interloper": "https://images.steamusercontent.com/ugc/1485579230721333806/D860541F6554853868E9C7F52E7FC892917B7A32/"
