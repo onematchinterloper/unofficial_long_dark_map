@@ -14,11 +14,10 @@ import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-ro
 type AreaDef = {
   id: string
   title: string
-  /** coords in the *image's natural pixel space* (homemap) */
+  /** Natural pixels on the start island image (same file as `startMapSrc`). */
   coords: [number, number, number, number]
   /**
-   * Where this click goes in maps.json:
-   * one segment = level 2 (region), two = level 3 (sub-location under that region)
+   * Route: one segment = region/transition, two = sub-location in `maps.json` `locations`.
    */
   path: [string] | [string, string]
 }
@@ -142,11 +141,8 @@ map:       ${mapTitle}   (${pathJson} · ${difficulty})
 route:     ${route}
 natural:   [${x1}, ${y1}, ${x2}, ${y2}]
 
-// AreaDef-style (overworld)
+// AreaDef in MapPage (AREAS)
 coords:    [${x1}, ${y1}, ${x2}, ${y2}]
-
-// maps.json (example link entry you wire up)
-"coords": [${x1}, ${y1}, ${x2}, ${y2}]
 ---`
   // eslint-disable-next-line no-console
   console.log(block)
@@ -272,7 +268,7 @@ export default function MapPage() {
   const [searchParams] = useSearchParams()
   const { regionId, locationId } = useParams()
   const isDev = searchParams.get('dev') === '1' || searchParams.get('dev') === 'true'
-  /** Empty = level 1 (overworld / homemap). [region] = level 2. [region, sub] = level 3. */
+  /** Empty = start map. [region] = level 2. [region, sub] = level 3. */
   const mapPath = useMemo(() => {
     if (!regionId) return []
     if (!locationId) return [regionId]

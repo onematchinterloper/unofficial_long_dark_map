@@ -20,6 +20,15 @@
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/9516403236853107764/7C78444F11075F0CA7801155D89B604BEA222670/",
         "interloper": "https://images.steamusercontent.com/ugc/9475295296023591018/8FA0642300D3597E7E2EB050545003226E35316F/"
+      },
+      "locations": {
+        "cinder-hills-lower-aurora": {
+          "title": "Abandoned Mine (Lower) – Cinder Hills Coal Mine (Aurora)",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/757096736646078902/E580517839FD460F4D8DC43C6AE26EC696850176/",
+            "interloper": "https://images.steamusercontent.com/ugc/757096736646078902/E580517839FD460F4D8DC43C6AE26EC696850176/"
+          }
+        }
       }
     },
     "pleasant-valley": {
@@ -34,6 +43,22 @@
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/16057301526255972814/3A4FB4945D272F27EEBCEAFF483C452374C935CE/",
         "interloper": "https://images.steamusercontent.com/ugc/17555198380887569827/EBDC7B329B52AF9B8F6F0A907F90EAAFFB8ED230/"
+      },
+      "locations": {
+        "cave": {
+          "title": "Cave – Desolation Point",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/1485579230725279939/CDE987F4A09EB17CE946EAD2DA0E4C7CC288498C/",
+            "interloper": "https://images.steamusercontent.com/ugc/1485579230725279939/CDE987F4A09EB17CE946EAD2DA0E4C7CC288498C/"
+          }
+        },
+        "abandoned-mine-no-5": {
+          "title": "Abandoned Mine No.5",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/1485579230721497407/F8C3001F99922D9376961E4C92885180B25BECFA/",
+            "interloper": "https://images.steamusercontent.com/ugc/1485579230721497407/F8C3001F99922D9376961E4C92885180B25BECFA/"
+          }
+        }
       }
     },
     "timberwolf-mountain": {
@@ -41,6 +66,15 @@
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/18019470743317950368/FE3E7A2C5308EDFB4C43A5B8BB8230426A9D19A1/",
         "interloper": "https://images.steamusercontent.com/ugc/16015738267194102941/276C79D3CAE76AA15CBC3C55021299B5A7A13956/"
+      },
+      "locations": {
+        "cave-entrances": {
+          "title": "Cave (Entrance A–B, C–D)",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/1720912098819445854/71937508014D005B3AD7D9C3D4C5E503B40745BC/",
+            "interloper": "https://images.steamusercontent.com/ugc/1720912098819445854/71937508014D005B3AD7D9C3D4C5E503B40745BC/"
+          }
+        }
       }
     },
     "forlorn-muskeg": {
@@ -48,6 +82,15 @@
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/15190933220557313885/B5B3BC2BABBF9E90336E0AF50BC7379E197410A9/",
         "interloper": "https://images.steamusercontent.com/ugc/13120278709304539605/D8F929B355A896EBCA2F5EA01775F6B56A395D5E/"
+      },
+      "locations": {
+        "cave-fm": {
+          "title": "Cave",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/1720912252081514771/E20560ED1B6E7318120502282AD7DB5CC3FB6F7E/",
+            "interloper": "https://images.steamusercontent.com/ugc/1720912252081514771/E20560ED1B6E7318120502282AD7DB5CC3FB6F7E/"
+          }
+        }
       }
     },
     "broken-railroad": {
@@ -69,6 +112,15 @@
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/11738172134438972729/9DB6EBD8279EB82FA9041ACF286CFF8F51C280D0/",
         "interloper": "https://images.steamusercontent.com/ugc/11458033074726588907/497E67C51FD94E97E14086322E2DFDBC5E8BA64F/"
+      },
+      "locations": {
+        "ice-cave": {
+          "title": "Ice Cave",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/1835791752086702869/E09379C753F7846781D402EC2BACED4F19C28D52/",
+            "interloper": "https://images.steamusercontent.com/ugc/1835791752086702869/E09379C753F7846781D402EC2BACED4F19C28D52/"
+          }
+        }
       }
     },
     "bleak-inlet": {
@@ -83,6 +135,22 @@
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/12423718121825641694/1436C3EE25819AC99F2765E65FF87EB91FEE82C7/",
         "interloper": "https://images.steamusercontent.com/ugc/11775972934425462577/06F5B6240C384475FA96DE6B3D656E9B51CB5D38/"
+      },
+      "locations": {
+        "gold-mine": {
+          "title": "Gold Mine",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/1753558271037561605/42E7E147B7B4F3114794B64DFA04389764B9F1BE/",
+            "interloper": "https://images.steamusercontent.com/ugc/1753558271037561605/42E7E147B7B4F3114794B64DFA04389764B9F1BE/"
+          }
+        },
+        "cave": {
+          "title": "Cave",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/1753558271037561615/CBD7BE23DC744AFCDCB8D5AB7813CC89F32A4BC0/",
+            "interloper": "https://images.steamusercontent.com/ugc/1753558271037561615/CBD7BE23DC744AFCDCB8D5AB7813CC89F32A4BC0/"
+          }
+        }
       }
     },
     "blackrock": {
@@ -90,6 +158,22 @@
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/13725529750150141786/377C02F990FA45DF8EBAC15FFFA435457554996A/",
         "interloper": "https://images.steamusercontent.com/ugc/13819165643333898105/D35F9682041D607CC43CEF91ECBF28A57F5F2098/"
+      },
+      "locations": {
+        "mine": {
+          "title": "Mine",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/1845912645711993722/FFF75F3B60D8669B2910791C25B29B3821020A92/",
+            "interloper": "https://images.steamusercontent.com/ugc/1845912645711993722/FFF75F3B60D8669B2910791C25B29B3821020A92/"
+          }
+        },
+        "steam-tunnels-brm": {
+          "title": "Steam tunnels – BRM (Survival)",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/1845912645711240840/89D1B4F8554AB0BACA93D03D1BC1E1BBBB042340/",
+            "interloper": "https://images.steamusercontent.com/ugc/1845912645711240840/89D1B4F8554AB0BACA93D03D1BC1E1BBBB042340/"
+          }
+        }
       }
     },
     "transfer-pass": {
@@ -206,6 +290,15 @@
       "map": {
         "pilgrim": "https://images.steamusercontent.com/ugc/15159145128947408591/484B84DD777B5E0742837BB86857EAA524315342/",
         "interloper": "https://images.steamusercontent.com/ugc/16055965560201475697/BF5677731E7CE8A282819D01C96AB5486A6E478/"
+      },
+      "locations": {
+        "ice-cave-n-to-s": {
+          "title": "Ice Cave (N to S)",
+          "map": {
+            "pilgrim": "https://images.steamusercontent.com/ugc/1845912122777780038/A59084711A60E25178210C2B700E7A42440F6C32/",
+            "interloper": "https://images.steamusercontent.com/ugc/1845912122777780038/A59084711A60E25178210C2B700E7A42440F6C32/"
+          }
+        }
       }
     },
     "ravine": {
