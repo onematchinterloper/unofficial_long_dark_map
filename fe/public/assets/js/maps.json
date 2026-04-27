@@ -197,6 +197,13 @@
         "interloper": "https://images.steamusercontent.com/ugc/10958718653805267230/55045BF44ACECE678A21417948002A17C0AC973A/"
       },
       "locations": {
+        "concentrator": {
+          "title": "Concentrator",
+          "map": {
+            "pilgrim": "https://i.redd.it/ikv1tao74mmf1.jpeg",
+            "interloper": "https://i.redd.it/ikv1tao74mmf1.jpeg"
+          }
+        },
         "langston-mine": {
           "title": "Langston Mine",
           "map": {
