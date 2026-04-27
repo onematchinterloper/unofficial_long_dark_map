@@ -640,7 +640,9 @@ export default function MapPage() {
     <aside className={menuCollapsed ? 'tldMenu tldMenu--collapsed' : 'tldMenu'} aria-label="Navigation">
       <div className="tldMenu__header">
         <div className="tldMenu__headerText">
-          <div className="tldMenu__title">{menuCollapsed ? 'TLD' : 'TLD Map'}</div>
+          <div className="tldMenu__title">
+            {menuCollapsed ? 'Maps' : 'Unofficial Long Dark Maps'}
+          </div>
           <div className="tldMenu__regionName">{menuRegionTitle}</div>
         </div>
         <button
