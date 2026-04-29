@@ -471,13 +471,17 @@ body {
 
 .tld__start {
   width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-#start-map-image {
-  display: block;
+.tld__start .tldViewer {
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  height: auto;
-  touch-action: none;
 }
 
 .tld__viewer {
@@ -650,22 +654,6 @@ body {
     text-overflow: ellipsis;
   }
 
-  .tld__start {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  #start-map-image {
-    flex: 1;
-    min-height: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
   .tld__viewer {
     flex: 1;
     min-height: 0;
@@ -673,6 +661,10 @@ body {
 
   .tldViewer img {
     max-height: 100%;
+  }
+
+  .tld__start .tldViewer img {
+    object-fit: contain;
   }
 
   .tldMenu__row {

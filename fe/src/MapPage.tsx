@@ -72,6 +72,18 @@ const AREAS: AreaDef[] = [
   { id: 'tftft-langston-mine', title: 'Langston Mine', coords: [910, 1035, 1025, 1100], path: ['zone-of-contamination', 'langston-mine'] },
 ]
 
+function areaAtNaturalPoint(
+  x: number,
+  y: number,
+): (typeof AREAS)[number] | null {
+  for (let i = AREAS.length - 1; i >= 0; i--) {
+    const a = AREAS[i]!
+    const [x1, y1, x2, y2] = a.coords
+    if (x >= x1 && x <= x2 && y >= y1 && y <= y2) return a
+  }
+  return null
+}
+
 function pathsEqual(a: string[], b: string[]) {
   return a.length === b.length && a.every((s, i) => s === b[i])
 }
@@ -106,16 +118,6 @@ function titleForMapPath(maps: MapsData | null, path: string[]): string {
   if (area) return area.title
   if (path.length === 1) return path[0] ?? 'Map'
   return path[1] ?? path[0] ?? 'Map'
-}
-
-function scaledCoords(coords: AreaDef['coords'], scaleX: number, scaleY: number) {
-  const [x1, y1, x2, y2] = coords
-  return [
-    Math.round(x1 * scaleX),
-    Math.round(y1 * scaleY),
-    Math.round(x2 * scaleX),
-    Math.round(y2 * scaleY),
-  ].join(',')
 }
 
 /** Unclamped client position → natural image pixels (same convention as `AreaDef.coords` / `maps.json` rects). */
@@ -289,8 +291,8 @@ export default function MapPage() {
   const [mapType, setMapType] = useState(() => pickValidMapType(readMapTypeFromCookie()))
   const [maps, setMaps] = useState<MapsData | null>(null)
   const [menuCollapsed, setMenuCollapsed] = useState(() => readMenuCollapsedFromCookie())
-  const [imgScale, setImgScale] = useState<{ x: number; y: number } | null>(null)
   const startImgRef = useRef<HTMLImageElement | null>(null)
+  const startViewerRef = useRef<HTMLDivElement | null>(null)
   const viewerRef = useRef<HTMLDivElement | null>(null)
   const viewerImgRef = useRef<HTMLImageElement | null>(null)
   const wheelFocusRef = useRef<null | { u: number; v: number; clientX: number; clientY: number }>(null)
@@ -311,6 +313,8 @@ export default function MapPage() {
   const toHome = () => '/'
   const toRegion = (id: string) => `/region/${encodeURIComponent(id)}`
   const toLocation = (rid: string, lid: string) => `/region/${encodeURIComponent(rid)}/${encodeURIComponent(lid)}`
+
+  const inViewer = mapPath.length > 0
 
   const base = import.meta.env.BASE_URL
   const startMapSrc = `${base}assets/img/homemap.png`
@@ -333,24 +337,6 @@ export default function MapPage() {
     }
   }, [base])
 
-  useEffect(() => {
-    const img = startImgRef.current
-    if (!img) return
-
-    const compute = () => {
-      if (!img.naturalWidth || !img.naturalHeight) return
-      if (!img.clientWidth || !img.clientHeight) return
-      setImgScale({
-        x: img.clientWidth / img.naturalWidth,
-        y: img.clientHeight / img.naturalHeight,
-      })
-    }
-
-    compute()
-    window.addEventListener('resize', compute)
-    return () => window.removeEventListener('resize', compute)
-  }, [])
-
   const selectedMapUrl = useMemo(() => {
     if (!maps) return null
     return resolveMapUrl(maps, mapPath, mapType)
@@ -369,7 +355,7 @@ export default function MapPage() {
     const pending = wheelFocusRef.current
     if (!pending) return
     wheelFocusRef.current = null
-    const img = viewerImgRef.current
+    const img = inViewer ? viewerImgRef.current : startImgRef.current
     if (!img) return
     const r1 = img.getBoundingClientRect()
     if (r1.width < 1 || r1.height < 1) return
@@ -377,10 +363,10 @@ export default function MapPage() {
     const errX = clientX - (r1.left + u * r1.width)
     const errY = clientY - (r1.top + v * r1.height)
     setPan((p) => ({ x: p.x + errX, y: p.y + errY }))
-  }, [zoom])
+  }, [zoom, inViewer])
 
   const applyWheelZoomToCursor = (e: WheelEvent) => {
-    const img = viewerImgRef.current
+    const img = (e.currentTarget as HTMLElement | null)?.querySelector('img') as HTMLImageElement | null
     if (!img) return
     const r0 = img.getBoundingClientRect()
     if (r0.width < 1 || r0.height < 1) return
@@ -406,8 +392,7 @@ export default function MapPage() {
   // React’s onWheel is passive, so preventDefault() fails and the browser logs errors. Real listener
   // (non-passive) is required to take over scrolling for zoom.
   useEffect(() => {
-    if (mapPath.length === 0) return
-    const el = viewerRef.current
+    const el = inViewer ? viewerRef.current : startViewerRef.current
     if (!el) return
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
@@ -417,12 +402,13 @@ export default function MapPage() {
     return () => {
       el.removeEventListener('wheel', onWheel)
     }
-  }, [mapPath, selectedMapUrl])
+  }, [inViewer, selectedMapUrl, mapPath])
 
   // Pointer-based drag/pinch.
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchRef = useRef<{ dist: number; zoom: number } | null>(null)
   const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null)
+  const hadTwoPointGestureRef = useRef(false)
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return
@@ -433,6 +419,7 @@ export default function MapPage() {
       dragStartRef.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y }
       setDragging(true)
     } else if (pointersRef.current.size === 2) {
+      hadTwoPointGestureRef.current = true
       const pts = Array.from(pointersRef.current.values())
       const dx = pts[0].x - pts[1].x
       const dy = pts[0].y - pts[1].y
@@ -472,6 +459,31 @@ export default function MapPage() {
     pointersRef.current.delete(e.pointerId)
     if (pointersRef.current.size < 2) pinchRef.current = null
     if (pointersRef.current.size === 0) {
+      if (
+        !isDev &&
+        !inViewer &&
+        dragStartRef.current &&
+        !hadTwoPointGestureRef.current
+      ) {
+        const d = dragStartRef.current
+        const dist = Math.hypot(e.clientX - d.x, e.clientY - d.y)
+        if (dist < 10) {
+          const img = startImgRef.current
+          if (img?.naturalWidth) {
+            const p = clientToNatural(e.clientX, e.clientY, img)
+            const hit = areaAtNaturalPoint(p.x, p.y)
+            if (hit) {
+              const pth = hit.path
+              if (pth.length === 1) {
+                navigate(toRegion(pth[0]!))
+              } else {
+                navigate(toLocation(pth[0]!, pth[1]!))
+              }
+            }
+          }
+        }
+      }
+      hadTwoPointGestureRef.current = false
       dragStartRef.current = null
       setDragging(false)
     }
@@ -479,7 +491,6 @@ export default function MapPage() {
 
   const viewerTitle = useMemo(() => titleForMapPath(maps, mapPath), [maps, mapPath])
 
-  const inViewer = mapPath.length > 0
   const menuRegionTitle = inViewer ? viewerTitle : 'Overworld'
 
   const regions = useMemo(() => {
@@ -594,18 +605,6 @@ export default function MapPage() {
       }
       return next
     })
-  }
-
-  const goTo = (nextPath: string[]) => {
-    if (nextPath.length === 0) {
-      navigate('/')
-      return
-    }
-    if (nextPath.length === 1) {
-      navigate(toRegion(nextPath[0]))
-      return
-    }
-    navigate(toLocation(nextPath[0], nextPath[1] ?? ''))
   }
 
   const renderMapNavGroup = (id: string) => {
@@ -900,48 +899,39 @@ export default function MapPage() {
           className={isDev ? 'tld__start tld__start--dev' : 'tld__start'}
           aria-label="World map"
         >
-          <img
-            ref={startImgRef}
-            src={startMapSrc}
-            alt="Start Map"
-            useMap={isDev ? undefined : '#map-links'}
-            id="start-map-image"
-            draggable={false}
-            onLoad={() => {
-              const img = startImgRef.current
-              if (!img?.naturalWidth || !img?.naturalHeight) return
-              if (!img.clientWidth || !img.clientHeight) return
-              setImgScale({
-                x: img.clientWidth / img.naturalWidth,
-                y: img.clientHeight / img.naturalHeight,
-              })
-            }}
-          />
-
-          <map name="map-links">
-            {AREAS.map((a) => (
-              <area
-                key={a.id}
-                alt={a.title}
-                title={a.title}
-                href="#"
-                shape="rect"
-                coords={imgScale ? scaledCoords(a.coords, imgScale.x, imgScale.y) : a.coords.join(',')}
-                onClick={(e) => {
-                  e.preventDefault()
-                  goTo([...a.path])
-                }}
-              />
-            ))}
-          </map>
-          {isDev && (
-            <LinkRectTool
-              imageRef={startImgRef}
-              mapPath={[]}
-              mapTitle={titleForMapPath(maps, [])}
-              mapType={mapType}
+          <div
+            ref={startViewerRef}
+            className={[
+              dragging && !isDev ? 'tldViewer tldViewer--dragging' : 'tldViewer',
+              isDev ? 'tldViewer--dev' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUpOrCancel}
+            onPointerCancel={onPointerUpOrCancel}
+          >
+            <img
+              ref={startImgRef}
+              src={startMapSrc}
+              alt="Start map — drag to pan, scroll or pinch to zoom, tap a region to open it"
+              id="start-map-image"
+              draggable={false}
+              style={{
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transformOrigin: 'center center',
+              }}
             />
-          )}
+            {isDev && (
+              <LinkRectTool
+                imageRef={startImgRef}
+                mapPath={[]}
+                mapTitle={titleForMapPath(maps, [])}
+                mapType={mapType}
+              />
+            )}
+          </div>
         </section>
       </div>
     </main>
