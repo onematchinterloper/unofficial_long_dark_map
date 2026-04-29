@@ -17,7 +17,23 @@ import {
   writeMenuCollapsedToCookie,
   writeOpenMenuGroupsToCookie,
 } from './cookies'
-import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+
+const NARROW_LAYOUT_MQ = '(max-width: 1023px)'
+
+function useNarrowLayout() {
+  const [narrow, setNarrow] = useState(
+    () => (typeof window !== 'undefined' ? window.matchMedia(NARROW_LAYOUT_MQ).matches : false),
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(NARROW_LAYOUT_MQ)
+    const onChange = () => setNarrow(mq.matches)
+    onChange()
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return narrow
+}
 
 type AreaDef = {
   id: string
@@ -267,6 +283,9 @@ function LinkRectTool({ imageRef, mapPath, mapTitle, mapType }: LinkRectToolProp
 }
 
 export default function MapPage() {
+  const location = useLocation()
+  const narrow = useNarrowLayout()
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [mapType, setMapType] = useState(() => pickValidMapType(readMapTypeFromCookie()))
   const [maps, setMaps] = useState<MapsData | null>(null)
   const [menuCollapsed, setMenuCollapsed] = useState(() => readMenuCollapsedFromCookie())
@@ -484,6 +503,25 @@ export default function MapPage() {
     writeMenuCollapsedToCookie(menuCollapsed)
   }, [menuCollapsed])
 
+  const effectiveMenuCollapsed = !narrow && menuCollapsed
+
+  useEffect(() => {
+    if (!narrow) setDrawerOpen(false)
+  }, [narrow])
+
+  useEffect(() => {
+    if (narrow) setDrawerOpen(false)
+  }, [location.pathname, narrow])
+
+  useEffect(() => {
+    if (!narrow || !drawerOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDrawerOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [narrow, drawerOpen])
+
   useEffect(() => {
     writeOpenMenuGroupsToCookie(openMenuGroups)
   }, [openMenuGroups])
@@ -637,22 +675,36 @@ export default function MapPage() {
   }
 
   const menu = (
-    <aside className={menuCollapsed ? 'tldMenu tldMenu--collapsed' : 'tldMenu'} aria-label="Navigation">
+    <aside
+      id="tld-side-nav"
+      className={[
+        'tldMenu',
+        effectiveMenuCollapsed && 'tldMenu--collapsed',
+        narrow && drawerOpen && 'tldMenu--drawerOpen',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      aria-label="Navigation"
+      aria-hidden={narrow && !drawerOpen}
+    >
       <div className="tldMenu__header">
         <div className="tldMenu__headerText">
           <div className="tldMenu__title">
-            {menuCollapsed ? 'Maps' : 'Unofficial Long Dark Maps'}
+            {effectiveMenuCollapsed ? 'Maps' : 'Unofficial Long Dark Maps'}
           </div>
           <div className="tldMenu__regionName">{menuRegionTitle}</div>
         </div>
         <button
           type="button"
           className="tldMenu__toggle"
-          onClick={() => setMenuCollapsed((v) => !v)}
-          aria-pressed={menuCollapsed}
-          title={menuCollapsed ? 'Expand menu' : 'Collapse menu'}
+          onClick={() => {
+            if (narrow) setDrawerOpen(false)
+            else setMenuCollapsed((v) => !v)
+          }}
+          aria-pressed={narrow ? undefined : effectiveMenuCollapsed}
+          title={narrow ? 'Close menu' : effectiveMenuCollapsed ? 'Expand menu' : 'Collapse menu'}
         >
-          {menuCollapsed ? '»' : '«'}
+          {narrow ? '×' : effectiveMenuCollapsed ? '»' : '«'}
         </button>
       </div>
 
@@ -741,11 +793,42 @@ export default function MapPage() {
     </aside>
   )
 
+  const mapTopBar = narrow ? (
+    <div className="tldMapBar" role="navigation" aria-label="Map toolbar">
+      <button
+        type="button"
+        className="tldMapBar__menuBtn"
+        onClick={() => setDrawerOpen(true)}
+        aria-expanded={drawerOpen}
+        aria-controls="tld-side-nav"
+        title="Open navigation menu"
+      >
+        <span className="tldMapBar__hamburger" aria-hidden />
+        <span className="tld-sr-only">Open navigation menu</span>
+      </button>
+      <div className="tldMapBar__title" title={menuRegionTitle}>
+        {menuRegionTitle}
+      </div>
+    </div>
+  ) : null
+
+  const navBackdrop =
+    narrow && drawerOpen ? (
+      <div
+        className="tldMenu__backdrop"
+        role="presentation"
+        onClick={() => setDrawerOpen(false)}
+        aria-hidden
+      />
+    ) : null
+
   if (inViewer) {
     return (
-      <main className="tldLayout">
+      <main className={['tldLayout', narrow && 'tldLayout--narrow'].filter(Boolean).join(' ')}>
         {menu}
+        {navBackdrop}
         <div className="tldMain">
+          {mapTopBar}
           <section className="tld__viewer" aria-label="Map viewer">
             {selectedMapUrl ? (
               <div
@@ -808,9 +891,11 @@ export default function MapPage() {
   }
 
   return (
-    <main className="tldLayout">
+    <main className={['tldLayout', narrow && 'tldLayout--narrow'].filter(Boolean).join(' ')}>
       {menu}
+      {navBackdrop}
       <div className="tldMain">
+        {mapTopBar}
         <section
           className={isDev ? 'tld__start tld__start--dev' : 'tld__start'}
           aria-label="World map"
