@@ -298,6 +298,8 @@ export default function MapPage() {
   const wheelFocusRef = useRef<null | { u: number; v: number; clientX: number; clientY: number }>(null)
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  /** Natural pixel size of bundled homemap.png (needed for SVG region overlay aligned with clicks). */
+  const [startMapNaturalSize, setStartMapNaturalSize] = useState<{ w: number; h: number } | null>(null)
   const [dragging, setDragging] = useState(false)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -912,25 +914,68 @@ export default function MapPage() {
             onPointerUp={onPointerUpOrCancel}
             onPointerCancel={onPointerUpOrCancel}
           >
-            <img
-              ref={startImgRef}
-              src={startMapSrc}
-              alt="Start map — drag to pan, scroll or pinch to zoom, tap a region to open it"
-              id="start-map-image"
-              draggable={false}
+            <div
+              className="tldStartTransform"
               style={{
                 transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                 transformOrigin: 'center center',
               }}
-            />
-            {isDev && (
-              <LinkRectTool
-                imageRef={startImgRef}
-                mapPath={[]}
-                mapTitle={titleForMapPath(maps, [])}
-                mapType={mapType}
-              />
-            )}
+            >
+              <div className="tldStartMapStack">
+                <img
+                  ref={startImgRef}
+                  src={startMapSrc}
+                  alt="Start map — drag to pan, scroll or pinch to zoom, tap a region to open it"
+                  id="start-map-image"
+                  draggable={false}
+                  onLoad={(e) => {
+                    const img = e.currentTarget
+                    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                      setStartMapNaturalSize({ w: img.naturalWidth, h: img.naturalHeight })
+                    }
+                  }}
+                />
+                {startMapNaturalSize && (
+                  <svg
+                    className="tldAreaOverlay"
+                    viewBox={`0 0 ${startMapNaturalSize.w} ${startMapNaturalSize.h}`}
+                    preserveAspectRatio="xMidYMid meet"
+                    role="presentation"
+                    aria-hidden
+                  >
+                    {AREAS.map((a) => {
+                      const [x1, y1, x2, y2] = a.coords
+                      return (
+                        <g key={a.id}>
+                          <title>{a.title}</title>
+                          <rect
+                            x={x1}
+                            y={y1}
+                            width={Math.max(1, x2 - x1)}
+                            height={Math.max(1, y2 - y1)}
+                            fill="rgba(255, 255, 255, 0.04)"
+                            stroke="rgba(255, 210, 120, 0.7)"
+                            strokeWidth={Math.max(
+                              8,
+                              Math.min(32, Math.round(startMapNaturalSize.w / 520)),
+                            )}
+                            strokeLinejoin="round"
+                          />
+                        </g>
+                      )
+                    })}
+                  </svg>
+                )}
+                {isDev && (
+                  <LinkRectTool
+                    imageRef={startImgRef}
+                    mapPath={[]}
+                    mapTitle={titleForMapPath(maps, [])}
+                    mapType={mapType}
+                  />
+                )}
+              </div>
+            </div>
           </div>
         </section>
       </div>
